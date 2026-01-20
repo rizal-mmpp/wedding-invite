@@ -54,14 +54,38 @@ export function getCountdown(targetDate: string | Date): {
   return { days, hours, minutes, seconds };
 }
 
-export async function copyToClipboard(text: string): Promise<boolean> {
-  if (typeof window === 'undefined' || !navigator || !navigator.clipboard) {
-    return false;
-  }
+function fallbackCopyTextToClipboard(text: string): boolean {
+  const textArea = document.createElement("textarea");
+  textArea.value = text;
+  textArea.style.top = "0";
+  textArea.style.left = "0";
+  textArea.style.position = "fixed";
+  textArea.style.opacity = "0";
+  document.body.appendChild(textArea);
+  textArea.focus();
+  textArea.select();
   try {
-    await navigator.clipboard.writeText(text);
-    return true;
-  } catch {
+    const successful = document.execCommand('copy');
+    document.body.removeChild(textArea);
+    return successful;
+  } catch (err) {
+    document.body.removeChild(textArea);
     return false;
   }
+}
+
+export async function copyToClipboard(text: string): Promise<boolean> {
+  if (typeof window === 'undefined' || !document) {
+    return false;
+  }
+  if (navigator && navigator.clipboard) {
+    try {
+      await navigator.clipboard.writeText(text);
+      return true;
+    } catch {
+      // Fall back to execCommand
+    }
+  }
+  // Fallback for older browsers or when clipboard API fails
+  return fallbackCopyTextToClipboard(text);
 }

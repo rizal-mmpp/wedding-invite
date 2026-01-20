@@ -54,9 +54,14 @@ export function getCountdown(targetDate: string | Date): {
   return { days, hours, minutes, seconds };
 }
 
-export function copyToClipboard(text: string): Promise<boolean> {
-  return navigator.clipboard
-    .writeText(text)
-    .then(() => true)
-    .catch(() => false);
+export async function copyToClipboard(text: string): Promise<boolean> {
+  if (typeof window === 'undefined' || !navigator || !navigator.clipboard) {
+    return false;
+  }
+  try {
+    await navigator.clipboard.writeText(text);
+    return true;
+  } catch {
+    return false;
+  }
 }

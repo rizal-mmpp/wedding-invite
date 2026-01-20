@@ -1,0 +1,162 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 30 50% 98%;
+    --foreground: 20 14% 20%;
+
+    --card: 30 50% 98%;
+    --card-foreground: 20 14% 20%;
+
+    --popover: 30 50% 98%;
+    --popover-foreground: 20 14% 20%;
+
+    --primary: 43 74% 52%;
+    --primary-foreground: 30 50% 98%;
+
+    --secondary: 350 35% 80%;
+    --secondary-foreground: 20 14% 20%;
+
+    --muted: 30 20% 90%;
+    --muted-foreground: 20 10% 45%;
+
+    --accent: 95 25% 61%;
+    --accent-foreground: 20 14% 20%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 30 50% 98%;
+
+    --border: 30 20% 85%;
+    --input: 30 20% 85%;
+    --ring: 43 74% 52%;
+
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --background: 20 14% 10%;
+    --foreground: 30 50% 98%;
+
+    --card: 20 14% 12%;
+    --card-foreground: 30 50% 98%;
+
+    --popover: 20 14% 12%;
+    --popover-foreground: 30 50% 98%;
+
+    --primary: 43 74% 52%;
+    --primary-foreground: 20 14% 10%;
+
+    --secondary: 350 35% 30%;
+    --secondary-foreground: 30 50% 98%;
+
+    --muted: 20 14% 20%;
+    --muted-foreground: 30 20% 65%;
+
+    --accent: 95 25% 35%;
+    --accent-foreground: 30 50% 98%;
+
+    --destructive: 0 62% 50%;
+    --destructive-foreground: 30 50% 98%;
+
+    --border: 20 14% 20%;
+    --input: 20 14% 20%;
+    --ring: 43 74% 52%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+  
+  .bg-gradient-wedding {
+    background: linear-gradient(135deg, #FDF8F3 0%, #E8D5A3 50%, #E8B4B8 100%);
+  }
+  
+  .bg-gradient-gold {
+    background: linear-gradient(135deg, #D4AF37 0%, #E8D5A3 100%);
+  }
+  
+  .text-gradient-gold {
+    background: linear-gradient(135deg, #D4AF37 0%, #E8D5A3 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  
+  .glass-effect {
+    backdrop-filter: blur(10px);
+    background: rgba(255, 255, 255, 0.1);
+  }
+  
+  .section-padding {
+    @apply py-16 md:py-24 lg:py-32;
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: hsl(var(--muted));
+}
+
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--primary));
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--primary) / 0.8);
+}
+
+/* Animation classes */
+.animate-on-scroll {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+}
+
+.animate-on-scroll.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Decorative elements */
+.ornament {
+  position: relative;
+}
+
+.ornament::before,
+.ornament::after {
+  content: "❧";
+  position: absolute;
+  color: hsl(var(--primary));
+  font-size: 1.5rem;
+}
+
+.ornament::before {
+  left: -2rem;
+}
+
+.ornament::after {
+  right: -2rem;
+  transform: scaleX(-1);
+}

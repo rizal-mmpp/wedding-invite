@@ -4,6 +4,8 @@ import type { WeddingData, APIResponse } from "@/types/wedding";
 export const dummyWeddingData: WeddingData = {
   id: "1",
   slug: "rizal-royanti",
+  backgroundImage: "/assets/prewedding-home.png",
+  desktopBackgroundImage: "/assets/prewedding-home-desktop.png",
   couple: {
     groom: {
       name: "Rizal",
@@ -126,30 +128,9 @@ export const dummyWeddingData: WeddingData = {
       id: "1",
       type: "bank",
       name: "Bank Central Asia (BCA)",
-      accountNumber: "1234567890",
-      accountHolder: "Bambang Sutrisno",
-    },
-    {
-      id: "2",
-      type: "bank",
-      name: "Bank Mandiri",
-      accountNumber: "0987654321",
-      accountHolder: "Partini Wulandari",
-    },
-    {
-      id: "3",
-      type: "ewallet",
-      name: "GoPay",
-      accountNumber: "081234567890",
-      accountHolder: "Bambang Sutrisno",
-    },
-    {
-      id: "4",
-      type: "address",
-      name: "Alamat Pengiriman Kado",
-      address:
-        "Perum Permata Hijau Blok F No. 45, Jakarta Selatan, DKI Jakarta 12345",
-    },
+      accountNumber: "4050373199",
+      accountHolder: "Rizal Iswandy",
+    }
   ],
   music: {
     url: "/audio/wedding-song.mp3",

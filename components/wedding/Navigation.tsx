@@ -78,7 +78,7 @@ export function Navigation() {
                 isScrolled ? "text-wedding-gold" : "text-white"
               )}
             >
-              B & P
+              Rio
             </a>
 
             {/* Desktop Links */}

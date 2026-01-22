@@ -53,7 +53,7 @@ export function LoveStory({ data }: LoveStoryProps) {
               <div
                 className={`flex-1 ${
                   index % 2 === 0 ? "md:text-right" : "md:text-left"
-                }`}
+                } ${index % 2 === 0 ? 'md:order-1' : 'md:order-3'} order-2`}
               >
                 <span className="text-wedding-gold text-sm font-medium">
                   {formatDate(story.date)}
@@ -67,16 +67,16 @@ export function LoveStory({ data }: LoveStoryProps) {
               </div>
 
               {/* Timeline dot */}
-              <div className="relative z-10 flex items-center justify-center">
+              <div className="relative z-10 flex items-center justify-center order-3 md:order-2">
                 <div className="w-12 h-12 rounded-full bg-wedding-gold flex items-center justify-center shadow-lg">
                   <Heart className="w-6 h-6 text-white fill-white" />
                 </div>
               </div>
 
               {/* Image */}
-              <div className="flex-1">
+              <div className={`flex-1 ${index % 2 === 0 ? 'md:order-3' : 'md:order-1'} order-1`}>
                 {story.image && (
-                  <div className="relative aspect-[4/3] rounded-lg overflow-hidden shadow-xl">
+                  <div className="relative aspect-[4/3] rounded-lg shadow-xl">
                     <Image
                       src={story.image}
                       alt={story.title}

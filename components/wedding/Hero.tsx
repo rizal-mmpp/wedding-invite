@@ -13,12 +13,20 @@ interface HeroProps {
 }
 
 export function Hero({ data }: HeroProps) {
+  const [isDesktop, setIsDesktop] = useState(false);
   const [countdown, setCountdown] = useState({
     days: 0,
     hours: 0,
     minutes: 0,
     seconds: 0,
   });
+
+  useEffect(() => {
+    const checkDesktop = () => setIsDesktop(window.innerWidth >= 768);
+    checkDesktop();
+    window.addEventListener('resize', checkDesktop);
+    return () => window.removeEventListener('resize', checkDesktop);
+  }, []);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -43,7 +51,7 @@ export function Hero({ data }: HeroProps) {
       {/* Background Image */}
       <div className="absolute inset-0 z-0">
         <Image
-          src={data.couple.groom.photo}
+          src={isDesktop ? data.desktopBackgroundImage : data.backgroundImage}
           alt="Wedding background"
           fill
           className="object-cover"

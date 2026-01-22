@@ -65,6 +65,8 @@ export interface RSVPGuest {
 export interface WeddingData {
   id: string;
   slug: string;
+  backgroundImage: string;
+  desktopBackgroundImage: string;
   couple: Couple;
   weddingDate: string;
   quote: {

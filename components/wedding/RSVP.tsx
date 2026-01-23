@@ -34,7 +34,7 @@ export function RSVP({ data }: RSVPProps) {
     setError("");
 
     try {
-      const response = await fetch("/api/rsvp", {
+      const response = await fetch("/api/submit-rsvp", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -137,7 +137,7 @@ export function RSVP({ data }: RSVPProps) {
                   </div>
 
                   {/* Email */}
-                  <div className="space-y-2">
+                  {/* <div className="space-y-2">
                     <Label htmlFor="email">Email</Label>
                     <Input
                       id="email"
@@ -147,7 +147,7 @@ export function RSVP({ data }: RSVPProps) {
                       value={formData.email}
                       onChange={handleChange}
                     />
-                  </div>
+                  </div> */}
 
                   {/* Phone */}
                   <div className="space-y-2">

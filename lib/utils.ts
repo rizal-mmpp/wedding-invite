@@ -89,3 +89,44 @@ export async function copyToClipboard(text: string): Promise<boolean> {
   // Fallback for older browsers or when clipboard API fails
   return fallbackCopyTextToClipboard(text);
 }
+
+export interface CalendarEvent {
+  title: string;
+  description?: string;
+  location?: string;
+  startDate: string; // YYYY-MM-DD format
+  startTime: string; // HH:MM format
+  endDate?: string;  // YYYY-MM-DD format
+  endTime?: string;  // HH:MM format
+}
+
+export function generateGoogleCalendarUrl(event: CalendarEvent): string {
+  const formatDateTime = (date: string, time: string): string => {
+    // Convert to YYYYMMDDTHHMMSS format (local time)
+    const [year, month, day] = date.split("-");
+    const [hours, minutes] = time.split(":");
+    return `${year}${month}${day}T${hours}${minutes}00`;
+  };
+
+  const startDateTime = formatDateTime(event.startDate, event.startTime);
+  const endDateTime = event.endDate && event.endTime 
+    ? formatDateTime(event.endDate, event.endTime)
+    : formatDateTime(event.startDate, event.endTime || event.startTime);
+
+  const params = new URLSearchParams({
+    action: "TEMPLATE",
+    text: event.title,
+    dates: `${startDateTime}/${endDateTime}`,
+    ctz: "Asia/Jakarta", // Indonesian timezone
+  });
+
+  if (event.description) {
+    params.append("details", event.description);
+  }
+
+  if (event.location) {
+    params.append("location", event.location);
+  }
+
+  return `https://calendar.google.com/calendar/render?${params.toString()}`;
+}

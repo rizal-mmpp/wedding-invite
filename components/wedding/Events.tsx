@@ -6,7 +6,7 @@ import { Calendar, Clock, MapPin, Navigation } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { formatDate, formatTime } from "@/lib/utils";
+import { formatDate, formatTime, generateGoogleCalendarUrl } from "@/lib/utils";
 import type { Event, WeddingData } from "@/types/wedding";
 
 interface EventsProps {
@@ -99,7 +99,7 @@ const EventCard = ({ event, index }: { event: Event; index: number }) => {
             </div>
           </div>
 
-          <Button
+          {/* <Button
             variant="wedding-outline"
             className="w-full mt-6"
             asChild
@@ -112,7 +112,7 @@ const EventCard = ({ event, index }: { event: Event; index: number }) => {
               <Navigation className="w-4 h-4 mr-2" />
               Open in Maps
             </a>
-          </Button>
+          </Button> */}
         </CardContent>
       </Card>
     </motion.div>
@@ -120,6 +120,24 @@ const EventCard = ({ event, index }: { event: Event; index: number }) => {
 };
 
 export function Events({ data }: EventsProps) {
+  const handleAddToCalendar = () => {
+    // Use the first event (main wedding event) for the calendar
+    const mainEvent = data.events[0];
+    if (!mainEvent) return;
+
+    const calendarUrl = generateGoogleCalendarUrl({
+      title: `Wedding of ${data.couple.groom.name} & ${data.couple.bride.name} - ${mainEvent.name}`,
+      description: `You are invited to the wedding celebration!\n\n${mainEvent.description || ""}\n\nVenue: ${mainEvent.venue}\nAddress: ${mainEvent.address}`,
+      location: `${mainEvent.venue}, ${mainEvent.address}`,
+      startDate: mainEvent.date,
+      startTime: mainEvent.time,
+      endDate: mainEvent.date,
+      endTime: mainEvent.endTime || mainEvent.time,
+    });
+
+    window.open(calendarUrl, "_blank", "noopener,noreferrer");
+  };
+
   return (
     <section
       id="events"
@@ -161,7 +179,7 @@ export function Events({ data }: EventsProps) {
           <p className="text-muted-foreground mb-4">
             Don&apos;t forget to mark your calendar!
           </p>
-          <Button variant="wedding" size="xl">
+          <Button variant="wedding" size="xl" onClick={handleAddToCalendar}>
             <Calendar className="w-5 h-5 mr-2" />
             Add to Calendar
           </Button>

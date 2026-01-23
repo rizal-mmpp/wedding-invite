@@ -91,7 +91,7 @@ export default function Home({ weddingData }: HomeProps) {
         <Couple data={weddingData} />
         <Events data={weddingData} />
         <Gallery data={weddingData} />
-        <LoveStory data={weddingData} />
+        {/* <LoveStory data={weddingData} /> */}
         <RSVP data={weddingData} />
         <Gifts data={weddingData} />
       </main>

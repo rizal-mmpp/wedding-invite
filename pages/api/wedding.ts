@@ -95,7 +95,7 @@ export const dummyWeddingData: WeddingData = {
       title: "Pertama Bertemu",
       date: "2020-01-15",
       description:
-        "Kami pertama kali bertemu di sebuah acara kampus. Saat itu, pandangan kami bertemu dan ada sesuatu yang berbeda.",
+        "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
       image: "/assets/gallery-mobile/photo-1.png",
     },
     {
@@ -103,7 +103,7 @@ export const dummyWeddingData: WeddingData = {
       title: "Mulai Dekat",
       date: "2020-06-20",
       description:
-        "Setelah beberapa bulan saling mengenal, kami mulai sering menghabiskan waktu bersama dan berbagi cerita.",
+        "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
       image: "/assets/gallery-mobile/photo-2.png",
     },
     {
@@ -111,7 +111,7 @@ export const dummyWeddingData: WeddingData = {
       title: "Resmi Berpacaran",
       date: "2021-02-14",
       description:
-        "Di hari Valentine, kami memutuskan untuk memulai hubungan yang lebih serius sebagai sepasang kekasih.",
+        "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
       image: "/assets/gallery-mobile/photo-3.png",
     },
     {

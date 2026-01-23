@@ -4,8 +4,8 @@ import type { WeddingData, APIResponse } from "@/types/wedding";
 export const dummyWeddingData: WeddingData = {
   id: "1",
   slug: "rizal-royanti",
-  backgroundImage: "/assets/prewedding-home.png",
-  desktopBackgroundImage: "/assets/prewedding-home-desktop.png",
+  backgroundImage: "/assets/prewedding-home.jpg",
+  desktopBackgroundImage: "/assets/prewedding-home-desktop.jpg",
   couple: {
     groom: {
       name: "Rizal",
@@ -54,7 +54,7 @@ export const dummyWeddingData: WeddingData = {
   gallery: [
     {
       id: "1",
-      src: "/assets/gallery-mobile/photo-1.png",
+      src: "/assets/gallery-mobile/photo-1.jpg",
       alt: "Prewedding photo 1",
       width: 800,
       height: 1200,
@@ -62,28 +62,28 @@ export const dummyWeddingData: WeddingData = {
     },
     {
       id: "2",
-      src: "/assets/gallery-mobile/photo-2.png",
+      src: "/assets/gallery-mobile/photo-2.jpg",
       alt: "Prewedding photo 2",
       width: 800,
       height: 1200,
     },
     {
       id: "3",
-      src: "/assets/gallery-mobile/photo-3.png",
+      src: "/assets/gallery-mobile/photo-3.jpg",
       alt: "Prewedding photo 3",
       width: 800,
       height: 600,
     },
     {
       id: "4",
-      src: "/assets/gallery-mobile/photo-4.png",
+      src: "/assets/gallery-mobile/photo-4.jpg",
       alt: "Prewedding photo 4",
       width: 800,
       height: 600,
     },
     {
       id: "5",
-      src: "/assets/gallery-mobile/photo-5.png",
+      src: "/assets/gallery-mobile/photo-5.jpg",
       alt: "Prewedding photo 5",
       width: 1200,
       height: 800,
@@ -96,7 +96,7 @@ export const dummyWeddingData: WeddingData = {
       date: "2020-01-15",
       description:
         "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-      image: "/assets/gallery-mobile/photo-1.png",
+      image: "/assets/gallery-mobile/photo-1.jpg",
     },
     {
       id: "2",
@@ -104,7 +104,7 @@ export const dummyWeddingData: WeddingData = {
       date: "2020-06-20",
       description:
         "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-      image: "/assets/gallery-mobile/photo-2.png",
+      image: "/assets/gallery-mobile/photo-2.jpg",
     },
     {
       id: "3",
@@ -112,7 +112,7 @@ export const dummyWeddingData: WeddingData = {
       date: "2021-02-14",
       description:
         "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-      image: "/assets/gallery-mobile/photo-3.png",
+      image: "/assets/gallery-mobile/photo-3.jpg",
     },
     {
       id: "4",
@@ -120,7 +120,7 @@ export const dummyWeddingData: WeddingData = {
       date: "2023-12-25",
       description:
         "Di momen Natal yang spesial, Rizal melamar Royanti dengan penuh ketulusan dan cinta.",
-      image: "/assets/gallery-mobile/photo-4.png",
+      image: "/assets/gallery-mobile/photo-4.jpg",
     },
   ],
   gifts: [

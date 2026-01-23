@@ -102,7 +102,8 @@ export default function Home({ weddingData }: HomeProps) {
 }
 
 export const getServerSideProps: GetServerSideProps<HomeProps> = async () => {
-  const res = await fetch('http://localhost:3000/api/wedding');
+  const apiBaseUrl = process.env.API_BASE_URL || 'http://localhost:3000';
+  const res = await fetch(`${apiBaseUrl}/api/wedding`);
   const data = await res.json();
   return {
     props: {

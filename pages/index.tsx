@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import Head from "next/head";
 import type { GetServerSideProps } from "next";
+import { useRouter } from "next/router";
 import {
   Hero,
   Couple,
@@ -11,6 +12,7 @@ import {
   Gifts,
   Footer,
   Navigation,
+  InvitationCover,
 } from "@/components/wedding";
 import type { WeddingData } from "@/types/wedding";
 
@@ -20,33 +22,60 @@ interface HomeProps {
 
 export default function Home({ weddingData }: HomeProps) {
   const [isLoading, setIsLoading] = useState(true);
+  const [showCover, setShowCover] = useState(true);
+  const [coverImageLoaded, setCoverImageLoaded] = useState(false);
+  const router = useRouter();
+  const { to } = router.query;
+  const guestName = typeof to === "string" ? decodeURIComponent(to) : "Nama Tamu";
+
+  const handleCoverImageLoad = () => {
+    setCoverImageLoaded(true);
+  };
 
   useEffect(() => {
-    // Simulate loading for smooth entrance animation
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 1000);
+    // Wait for cover image to load before hiding loading screen
+    if (coverImageLoaded) {
+      // Add a small delay for smooth transition
+      const timer = setTimeout(() => {
+        setIsLoading(false);
+      }, 300);
 
-    return () => clearTimeout(timer);
-  }, []);
+      return () => clearTimeout(timer);
+    }
+  }, [coverImageLoaded]);
 
-  if (isLoading) {
-    return (
-      <div className="fixed inset-0 bg-wedding-cream flex items-center justify-center z-50">
-        <div className="text-center">
-          <div className="animate-pulse">
-            <h1 className="font-script text-4xl md:text-6xl text-wedding-gold mb-4">
-              {weddingData.couple.groom.name} &amp; {weddingData.couple.bride.name}
-            </h1>
-            <p className="text-muted-foreground">Loading...</p>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  const handleOpenInvitation = () => {
+    setShowCover(false);
+    // Enable scrolling after cover is hidden
+    document.body.style.overflow = "auto";
+  };
+
+  // Prevent scrolling when cover is shown
+  useEffect(() => {
+    if (showCover) {
+      document.body.style.overflow = "hidden";
+    }
+    return () => {
+      document.body.style.overflow = "auto";
+    };
+  }, [showCover]);
 
   return (
     <>
+      {/* Loading Screen */}
+      {isLoading && (
+        <div className="fixed inset-0 bg-wedding-cream flex items-center justify-center z-[200]">
+          <div className="text-center">
+            <div className="animate-pulse">
+              <h1 className="font-script text-4xl md:text-6xl text-wedding-gold mb-4">
+                {weddingData.couple.groom.name} &amp; {weddingData.couple.bride.name}
+              </h1>
+              <p className="text-muted-foreground">Loading...</p>
+            </div>
+          </div>
+        </div>
+      )}
+
       <Head>
         <title>
           {weddingData.couple.groom.name} &amp; {weddingData.couple.bride.name} |
@@ -84,7 +113,17 @@ export default function Home({ weddingData }: HomeProps) {
         <meta name="twitter:image" content={weddingData.couple.groom.photo} />
       </Head>
 
-      <Navigation />
+      {/* Invitation Cover */}
+      {showCover && (
+        <InvitationCover
+          data={weddingData}
+          guestName={guestName}
+          onOpen={handleOpenInvitation}
+          onImageLoad={handleCoverImageLoad}
+        />
+      )}
+
+      {/* <Navigation /> */}
 
       <main>
         <Hero data={weddingData} />

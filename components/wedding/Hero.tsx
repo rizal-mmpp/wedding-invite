@@ -58,7 +58,7 @@ export function Hero({ data }: HeroProps) {
           priority
           quality={90}
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-black/70" />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/40 to-black/70" />
       </div>
 
       {/* Content */}
@@ -104,10 +104,10 @@ export function Hero({ data }: HeroProps) {
             className="grid grid-cols-4 gap-4 md:gap-8 max-w-lg mx-auto mb-12"
           >
             {[
-              { value: countdown.days, label: "Days" },
-              { value: countdown.hours, label: "Hours" },
-              { value: countdown.minutes, label: "Minutes" },
-              { value: countdown.seconds, label: "Seconds" },
+              { value: countdown.days, label: "Hari" },
+              { value: countdown.hours, label: "Jam" },
+              { value: countdown.minutes, label: "Menit" },
+              { value: countdown.seconds, label: "Detik" },
             ].map((item, index) => (
               <div
                 key={item.label}

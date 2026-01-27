@@ -7,3 +7,4 @@ export { RSVP } from "./RSVP";
 export { Gifts } from "./Gifts";
 export { Footer } from "./Footer";
 export { Navigation } from "./Navigation";
+export { default as InvitationCover } from "./InvitationCover";

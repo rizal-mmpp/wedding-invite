@@ -38,14 +38,14 @@ const PersonCard = ({
         />
       </div>
       <h3 className="font-script text-3xl md:text-4xl text-wedding-gold mb-2">
-        {person.name}
+        {person.fullName}
       </h3>
-      <p className="text-lg font-medium text-foreground mb-2">
+      {/* <p className="text-lg font-medium text-foreground mb-2">
         {person.fullName}
       </p>
-      <p className="text-muted-foreground text-sm mb-1">{person.childOrder}</p>
+      <p className="text-muted-foreground text-sm mb-1">{person.childOrder}</p> */}
       <p className="text-muted-foreground text-sm">
-        {person.fatherName} & {person.motherName}
+        {side === "left" ? "Putra dari" : "Putri dari"} {person.fatherName} & {person.motherName}
       </p>
       {person.instagram && (
         <Button

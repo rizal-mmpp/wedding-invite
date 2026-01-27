@@ -58,7 +58,7 @@ export function Hero({ data }: HeroProps) {
           priority
           quality={90}
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/40 to-black/70" />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-black/40 to-black/70" />
       </div>
 
       {/* Content */}
@@ -78,7 +78,7 @@ export function Hero({ data }: HeroProps) {
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 1, delay: 0.2 }}
-            className="font-script text-5xl md:text-7xl lg:text-8xl mb-6"
+            className="font-script text-4xl md:text-7xl lg:text-8xl mb-6"
           >
             {data.couple.groom.name} & {data.couple.bride.name}
           </motion.h1>

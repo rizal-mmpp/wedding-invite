@@ -161,6 +161,22 @@ export default function Home({ weddingData }: HomeProps) {
     setIsAutoScrolling((prev) => !prev);
   }, []);
 
+  const handleScrollToSection = useCallback((sectionId: string) => {
+    // Stop auto scroll first
+    setIsAutoScrolling(false);
+    
+    // Scroll to the section
+    const element = document.getElementById(sectionId);
+    if (element) {
+      element.scrollIntoView({ behavior: "smooth" });
+      
+      // Resume auto scroll after scrolling completes (approximately 1 second)
+      setTimeout(() => {
+        setIsAutoScrolling(true);
+      }, 1000);
+    }
+  }, []);
+
   const handleOpenInvitation = () => {
     setShowCover(false);
     // Enable scrolling after cover is hidden
@@ -274,6 +290,7 @@ export default function Home({ weddingData }: HomeProps) {
           isAutoScrolling={isAutoScrolling}
           onToggleMusic={handleToggleMusic}
           onToggleAutoScroll={handleToggleAutoScroll}
+          onScrollToSection={handleScrollToSection}
         />
       )}
 

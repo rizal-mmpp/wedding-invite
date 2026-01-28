@@ -2,7 +2,10 @@ import Database from "better-sqlite3";
 import path from "path";
 
 // Database file path
-const dbPath = path.join(process.cwd(), "data", "wedding.db");
+const dataDir =
+  process.env.RSVP_DATA_DIR ||
+  (process.env.VERCEL ? path.join("/tmp", "data") : path.join(process.cwd(), "data"));
+const dbPath = path.join(dataDir, "wedding.db");
 
 // Create database instance
 let db: Database.Database | null = null;
@@ -11,7 +14,6 @@ export function getDb(): Database.Database {
   if (!db) {
     // Ensure data directory exists
     const fs = require("fs");
-    const dataDir = path.join(process.cwd(), "data");
     if (!fs.existsSync(dataDir)) {
       fs.mkdirSync(dataDir, { recursive: true });
     }

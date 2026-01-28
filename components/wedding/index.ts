@@ -8,3 +8,4 @@ export { Gifts } from "./Gifts";
 export { Footer } from "./Footer";
 export { Navigation } from "./Navigation";
 export { default as InvitationCover } from "./InvitationCover";
+export { default as FloatingButtons } from "./FloatingButtons";

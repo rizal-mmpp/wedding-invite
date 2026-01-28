@@ -140,9 +140,9 @@ export const dummyWeddingData: WeddingData = {
     }
   ],
   music: {
-    url: "/audio/wedding-song.mp3",
-    title: "Perfect",
-    artist: "Ed Sheeran",
+    url: "/assets/audio/MilikMu Tuhan.mp3",
+    title: "MilikMu Tuhan",
+    artist: "Marsya Manopo & Shinta Rosari",
   },
   theme: {
     primaryColor: "#D4AF37",

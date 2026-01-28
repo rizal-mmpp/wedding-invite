@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import Head from "next/head";
 import type { GetServerSideProps } from "next";
 import { useRouter } from "next/router";
@@ -13,6 +13,7 @@ import {
   Footer,
   Navigation,
   InvitationCover,
+  FloatingButtons,
 } from "@/components/wedding";
 import type { WeddingData } from "@/types/wedding";
 
@@ -24,6 +25,10 @@ export default function Home({ weddingData }: HomeProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [showCover, setShowCover] = useState(true);
   const [coverImageLoaded, setCoverImageLoaded] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [isAutoScrolling, setIsAutoScrolling] = useState(false);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const autoScrollRef = useRef<number | null>(null);
   const router = useRouter();
   const { to } = router.query;
   const guestName = typeof to === "string" ? decodeURIComponent(to) : "Nama Tamu";
@@ -44,10 +49,148 @@ export default function Home({ weddingData }: HomeProps) {
     }
   }, [coverImageLoaded]);
 
+  // Initialize audio element
+  useEffect(() => {
+    if (weddingData.music?.url) {
+      audioRef.current = new Audio(weddingData.music.url);
+      audioRef.current.loop = true;
+      audioRef.current.volume = 0.7; // Set default volume to 70%
+      
+      // Preload the audio
+      audioRef.current.load();
+      
+      // Add error handling
+      audioRef.current.addEventListener('error', (e) => {
+        console.error('Audio loading error:', e);
+      });
+    }
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.src = '';
+        audioRef.current = null;
+      }
+    };
+  }, [weddingData.music?.url]);
+
+  // Auto scroll function
+  const startAutoScroll = useCallback(() => {
+    const scrollStep = () => {
+      const scrollHeight = document.documentElement.scrollHeight;
+      const clientHeight = document.documentElement.clientHeight;
+      const currentScroll = window.scrollY;
+
+      // Check if we've reached the bottom
+      if (currentScroll + clientHeight >= scrollHeight - 10) {
+        // Stop auto scroll when reaching bottom
+        setIsAutoScrolling(false);
+        if (autoScrollRef.current) {
+          cancelAnimationFrame(autoScrollRef.current);
+          autoScrollRef.current = null;
+        }
+        return;
+      }
+
+      // Scroll slowly (1 pixel per frame at ~60fps = ~60px per second)
+      window.scrollBy(0, 1);
+      autoScrollRef.current = requestAnimationFrame(scrollStep);
+    };
+
+    autoScrollRef.current = requestAnimationFrame(scrollStep);
+  }, []);
+
+  const stopAutoScroll = useCallback(() => {
+    if (autoScrollRef.current) {
+      cancelAnimationFrame(autoScrollRef.current);
+      autoScrollRef.current = null;
+    }
+  }, []);
+
+  // Handle auto scroll state changes
+  useEffect(() => {
+    if (isAutoScrolling) {
+      startAutoScroll();
+    } else {
+      stopAutoScroll();
+    }
+    return () => stopAutoScroll();
+  }, [isAutoScrolling, startAutoScroll, stopAutoScroll]);
+
+  // Stop auto scroll on user interaction
+  useEffect(() => {
+    const handleUserScroll = () => {
+      // Only stop if user manually scrolls (wheel or touch)
+      if (isAutoScrolling) {
+        setIsAutoScrolling(false);
+      }
+    };
+
+    window.addEventListener("wheel", handleUserScroll);
+    window.addEventListener("touchmove", handleUserScroll);
+
+    return () => {
+      window.removeEventListener("wheel", handleUserScroll);
+      window.removeEventListener("touchmove", handleUserScroll);
+    };
+  }, [isAutoScrolling]);
+
+  const handleToggleMusic = useCallback(() => {
+    if (audioRef.current) {
+      if (isPlaying) {
+        audioRef.current.pause();
+        setIsPlaying(false);
+      } else {
+        const playPromise = audioRef.current.play();
+        
+        if (playPromise !== undefined) {
+          playPromise
+            .then(() => {
+              setIsPlaying(true);
+              console.log('Audio resumed successfully');
+            })
+            .catch((error) => {
+              console.error('Audio playback failed:', error);
+              setIsPlaying(false);
+            });
+        }
+      }
+    }
+  }, [isPlaying]);
+
+  const handleToggleAutoScroll = useCallback(() => {
+    setIsAutoScrolling((prev) => !prev);
+  }, []);
+
   const handleOpenInvitation = () => {
     setShowCover(false);
     // Enable scrolling after cover is hidden
     document.body.style.overflow = "auto";
+    
+    // Start playing music
+    if (audioRef.current) {
+      // Reset audio to beginning
+      audioRef.current.currentTime = 0;
+      
+      const playPromise = audioRef.current.play();
+      
+      if (playPromise !== undefined) {
+        playPromise
+          .then(() => {
+            setIsPlaying(true);
+            console.log('Audio playback started successfully');
+          })
+          .catch((error) => {
+            console.error('Audio playback failed:', error);
+            // Still allow manual play via button
+            setIsPlaying(false);
+          });
+      }
+    }
+    
+    // Start auto scroll after a short delay
+    setTimeout(() => {
+      setIsAutoScrolling(true);
+    }, 500);
   };
 
   // Prevent scrolling when cover is shown
@@ -123,7 +266,16 @@ export default function Home({ weddingData }: HomeProps) {
         />
       )}
 
-      {/* <Navigation /> */}
+      {/* Floating Buttons - Music & Auto Scroll */}
+      {!showCover && (
+        <FloatingButtons
+          data={weddingData}
+          isPlaying={isPlaying}
+          isAutoScrolling={isAutoScrolling}
+          onToggleMusic={handleToggleMusic}
+          onToggleAutoScroll={handleToggleAutoScroll}
+        />
+      )}
 
       <main>
         <Hero data={weddingData} />

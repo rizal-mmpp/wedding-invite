@@ -129,7 +129,7 @@ export function Hero({ data }: HeroProps) {
           </motion.div>
 
           {/* Scroll indicator */}
-          <motion.div
+          {/* <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 1, delay: 1 }}
@@ -142,7 +142,7 @@ export function Hero({ data }: HeroProps) {
             >
               <ChevronDown className="h-8 w-8" />
             </Button>
-          </motion.div>
+          </motion.div> */}
         </div>
       </div>
 

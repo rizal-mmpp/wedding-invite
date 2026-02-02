@@ -48,6 +48,51 @@
 
     Open source code using your favorite IDE/Text editor and navigate to root` directory, this is where your application live.
 
+## Guest List + RSVP (per-guest)
+
+### Environment variable
+- `NEXT_PUBLIC_SITE_URL`: Base URL used to build RSVP links in WhatsApp/copy messages.
+  - Example: `https://mywedding.com`
+  - If not set, the UI falls back to the current browser origin.
+
+### Guest list admin page
+- Route: `/guest-list`
+- Features:
+  - CSV import (file upload or paste)
+  - Filters for Invitation Sent, Message Sent, RSVP Status
+  - WhatsApp send button, copy message button, message sent toggle
+  - Country selection (Indonesia/Singapore/United States/Netherlands)
+  - Per-guest language toggle (ID/EN)
+
+### CSV format
+Accepted columns (case-insensitive):
+
+```
+name,title,whatsapp,country,invited,rsvp_status,language
+```
+
+- `name` (required)
+- `whatsapp` (required)
+- `title` (optional) e.g. Mr/Bpk/Ibu/Sdr/Sdri
+- `country` (optional) Indonesia | Singapore | United States | Netherlands
+- `invited` (optional) true/false (invitation sent)
+- `rsvp_status` (optional) attending | not_attending | not_responded
+- `language` (optional) id | en
+
+Example:
+
+```
+name,title,whatsapp,country,invited,rsvp_status,language
+Ahmad Fauzi,Bpk,082233999510,Indonesia,false,not_responded,id
+Emily Wong,Ms,81234567,Singapore,false,not_responded,en
+```
+
+### Guest RSVP page
+- Route: `/rsvp/[slug]`
+- Shows guest name and collects:
+  - Attendance (attending / not attending)
+  - Message for the couple
+
 2.  **Build your application for production.**
 
     Once you're finished, you can make production build of your app using:

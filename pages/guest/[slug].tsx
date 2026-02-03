@@ -225,10 +225,7 @@ export default function GuestInvitationPage({ weddingData, guest }: GuestPagePro
       )}
 
       <Head>
-        <title>
-          {weddingData.couple.groom.name} &amp; {weddingData.couple.bride.name} |
-          {isEn ? "Wedding Invitation" : "Undangan Pernikahan"}
-        </title>
+        <title>The Wedding of Rizal &amp; Royanti</title>
         <meta
           name="description"
           content={
@@ -240,12 +237,7 @@ export default function GuestInvitationPage({ weddingData, guest }: GuestPagePro
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
 
-        <meta
-          property="og:title"
-          content={`${weddingData.couple.groom.name} & ${weddingData.couple.bride.name} ${
-            isEn ? "Wedding" : "Pernikahan"
-          }`}
-        />
+        <meta property="og:title" content="The Wedding of Rizal & Royanti" />
         <meta
           property="og:description"
           content={
@@ -254,16 +246,11 @@ export default function GuestInvitationPage({ weddingData, guest }: GuestPagePro
               : "Anda diundang untuk merayakan hari spesial kami"
           }
         />
-        <meta property="og:image" content={weddingData.couple.groom.photo} />
+        <meta property="og:image" content="/assets/thumbnail.jpg" />
         <meta property="og:type" content="website" />
 
         <meta name="twitter:card" content="summary_large_image" />
-        <meta
-          name="twitter:title"
-          content={`${weddingData.couple.groom.name} & ${weddingData.couple.bride.name} ${
-            isEn ? "Wedding" : "Pernikahan"
-          }`}
-        />
+        <meta name="twitter:title" content="The Wedding of Rizal & Royanti" />
         <meta
           name="twitter:description"
           content={
@@ -272,7 +259,7 @@ export default function GuestInvitationPage({ weddingData, guest }: GuestPagePro
               : "Anda diundang untuk merayakan hari spesial kami"
           }
         />
-        <meta name="twitter:image" content={weddingData.couple.groom.photo} />
+        <meta name="twitter:image" content="/assets/thumbnail.jpg" />
       </Head>
 
       {showCover && (

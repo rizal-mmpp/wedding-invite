@@ -15,9 +15,12 @@ export function formatDate(date: string | Date, locale: string = "id-ID"): strin
   });
 }
 
-export function formatTime(time: string): string {
+export function formatTime(time: string, locale: string = "id-ID"): string {
   const [hours, minutes] = time.split(":");
-  return `${hours}.${minutes} WIB`;
+  if (locale.startsWith("id")) {
+    return `${hours}.${minutes} WIB`;
+  }
+  return `${hours}:${minutes}`;
 }
 
 export function formatDateTime(date: string | Date, locale: string = "id-ID"): string {

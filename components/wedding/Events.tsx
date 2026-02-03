@@ -89,14 +89,14 @@ const EventCard = ({
           <div className="space-y-4">
             <div className="flex items-center gap-3 text-foreground">
               <Calendar className="w-5 h-5 text-wedding-gold" />
-              <span>{formatDate(event.date)}</span>
+              <span>{formatDate(event.date, isEn ? "en-US" : "id-ID")}</span>
             </div>
 
             <div className="flex items-center gap-3 text-foreground">
               <Clock className="w-5 h-5 text-wedding-gold" />
               <span>
-                {formatTime(event.time)}
-                {event.endTime && ` - ${formatTime(event.endTime)}`}
+                {formatTime(event.time, isEn ? "en-US" : "id-ID")}
+                {event.endTime && ` - ${formatTime(event.endTime, isEn ? "en-US" : "id-ID")}`}
               </span>
             </div>
 

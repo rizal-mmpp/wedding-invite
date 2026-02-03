@@ -94,7 +94,7 @@ export function Hero({ data, lang }: HeroProps) {
             className="mb-8"
           >
             <p className="text-xl md:text-2xl font-light">
-              {formatDate(data.weddingDate)}
+              {formatDate(data.weddingDate, isEn ? "en-US" : "id-ID")}
             </p>
           </motion.div>
 

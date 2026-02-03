@@ -58,7 +58,7 @@ export function LoveStory({ data, lang }: LoveStoryProps) {
                 } ${index % 2 === 0 ? 'md:order-1' : 'md:order-3'} order-2`}
               >
                 <span className="text-wedding-gold text-sm font-medium">
-                  {formatDate(story.date)}
+                  {formatDate(story.date, isEn ? "en-US" : "id-ID")}
                 </span>
                 <h3 className="text-2xl font-serif font-semibold text-foreground mt-2 mb-3">
                   {story.title}

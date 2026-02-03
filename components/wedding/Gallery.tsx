@@ -10,9 +10,11 @@ import type { GalleryImage, WeddingData } from "@/types/wedding";
 
 interface GalleryProps {
   data: WeddingData;
+  lang: "id" | "en";
 }
 
-export function Gallery({ data }: GalleryProps) {
+export function Gallery({ data, lang }: GalleryProps) {
+  const isEn = lang === "en";
   const [selectedImage, setSelectedImage] = useState<GalleryImage | null>(null);
   const [currentIndex, setCurrentIndex] = useState(0);
 
@@ -51,10 +53,10 @@ export function Gallery({ data }: GalleryProps) {
           className="text-center mb-16"
         >
           <p className="text-wedding-gold uppercase tracking-widest text-sm mb-4">
-            Our Moments
+            {isEn ? "Our Moments" : "Momen Kami"}
           </p>
           <h2 className="font-script text-4xl md:text-5xl lg:text-6xl text-foreground mb-6">
-            Photo Gallery
+            {isEn ? "Photo Gallery" : "Galeri Foto"}
           </h2>
           <Separator className="w-24 mx-auto bg-wedding-gold h-0.5" />
         </motion.div>

@@ -13,9 +13,11 @@ import type { WeddingData, RSVPGuest } from "@/types/wedding";
 
 interface RSVPProps {
   data: WeddingData;
+  lang: "id" | "en";
 }
 
-export function RSVP({ data }: RSVPProps) {
+export function RSVP({ data, lang }: RSVPProps) {
+  const isEn = lang === "en";
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -78,15 +80,16 @@ export function RSVP({ data }: RSVPProps) {
           className="text-center mb-16"
         >
           <p className="text-wedding-gold uppercase tracking-widest text-sm mb-4">
-            Be Our Guest
+            {isEn ? "Be Our Guest" : "Tamu Kami"}
           </p>
           <h2 className="font-script text-4xl md:text-5xl lg:text-6xl text-foreground mb-6">
             RSVP
           </h2>
           <Separator className="w-24 mx-auto bg-wedding-gold h-0.5" />
           <p className="text-muted-foreground mt-6 max-w-lg mx-auto">
-            We would be honored to have you celebrate our special day with us.
-            Please let us know if you can attend.
+            {isEn
+              ? "We would be honored to have you celebrate our special day with us. Please let us know if you can attend."
+              : "Kami sangat berbahagia jika Anda berkenan hadir merayakan hari spesial kami. Mohon konfirmasi kehadiran Anda."}
           </p>
         </motion.div>
 
@@ -100,7 +103,7 @@ export function RSVP({ data }: RSVPProps) {
           <Card className="border-wedding-gold/20">
             <CardHeader>
               <CardTitle className="text-center font-serif text-2xl">
-                Confirm Your Attendance
+                {isEn ? "Confirm Your Attendance" : "Konfirmasi Kehadiran"}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -114,22 +117,25 @@ export function RSVP({ data }: RSVPProps) {
                     <Check className="w-8 h-8 text-green-600" />
                   </div>
                   <h3 className="text-xl font-semibold text-foreground mb-2">
-                    Thank You!
+                    {isEn ? "Thank You!" : "Terima Kasih!"}
                   </h3>
                   <p className="text-muted-foreground">
-                    Your RSVP has been submitted successfully. We look forward to
-                    celebrating with you!
+                    {isEn
+                      ? "Your RSVP has been submitted successfully. We look forward to celebrating with you!"
+                      : "RSVP Anda berhasil terkirim. Kami menantikan kehadiran Anda!"}
                   </p>
                 </motion.div>
               ) : (
                 <form onSubmit={handleSubmit} className="space-y-6">
                   {/* Name */}
                   <div className="space-y-2">
-                    <Label htmlFor="name">Full Name *</Label>
+                    <Label htmlFor="name">{isEn ? "Full Name" : "Nama Lengkap"} *</Label>
                     <Input
                       id="name"
                       name="name"
-                      placeholder="Enter your full name"
+                      placeholder={
+                        isEn ? "Enter your full name" : "Masukkan nama lengkap"
+                      }
                       value={formData.name}
                       onChange={handleChange}
                       required
@@ -151,12 +157,16 @@ export function RSVP({ data }: RSVPProps) {
 
                   {/* Phone */}
                   <div className="space-y-2">
-                    <Label htmlFor="phone">Phone Number</Label>
+                    <Label htmlFor="phone">
+                      {isEn ? "Phone Number" : "Nomor Telepon"}
+                    </Label>
                     <Input
                       id="phone"
                       name="phone"
                       type="tel"
-                      placeholder="Enter your phone number"
+                      placeholder={
+                        isEn ? "Enter your phone number" : "Masukkan nomor telepon"
+                      }
                       value={formData.phone}
                       onChange={handleChange}
                     />
@@ -164,7 +174,7 @@ export function RSVP({ data }: RSVPProps) {
 
                   {/* Attendance */}
                   <div className="space-y-3">
-                    <Label>Will you attend? *</Label>
+                    <Label>{isEn ? "Will you attend?" : "Apakah Anda hadir?"} *</Label>
                     <div className="flex gap-4">
                       <label className="flex items-center gap-2 cursor-pointer">
                         <input
@@ -175,7 +185,9 @@ export function RSVP({ data }: RSVPProps) {
                           onChange={handleChange}
                           className="w-4 h-4 text-wedding-gold focus:ring-wedding-gold"
                         />
-                        <span>Yes, I will attend</span>
+                        <span>
+                          {isEn ? "Yes, I will attend" : "Ya, saya akan hadir"}
+                        </span>
                       </label>
                       <label className="flex items-center gap-2 cursor-pointer">
                         <input
@@ -186,7 +198,9 @@ export function RSVP({ data }: RSVPProps) {
                           onChange={handleChange}
                           className="w-4 h-4 text-wedding-gold focus:ring-wedding-gold"
                         />
-                        <span>Sorry, can&apos;t make it</span>
+                        <span>
+                          {isEn ? "Sorry, can't make it" : "Maaf, belum bisa hadir"}
+                        </span>
                       </label>
                     </div>
                   </div>
@@ -199,7 +213,9 @@ export function RSVP({ data }: RSVPProps) {
                       exit={{ opacity: 0, height: 0 }}
                       className="space-y-2"
                     >
-                      <Label htmlFor="numberOfGuests">Number of Guests</Label>
+                      <Label htmlFor="numberOfGuests">
+                        {isEn ? "Number of Guests" : "Jumlah Tamu"}
+                      </Label>
                       <div className="flex items-center gap-3">
                         <Users className="w-5 h-5 text-muted-foreground" />
                         <Input
@@ -213,7 +229,7 @@ export function RSVP({ data }: RSVPProps) {
                           className="w-24"
                         />
                         <span className="text-sm text-muted-foreground">
-                          person(s)
+                          {isEn ? "person(s)" : "orang"}
                         </span>
                       </div>
                     </motion.div>
@@ -221,11 +237,17 @@ export function RSVP({ data }: RSVPProps) {
 
                   {/* Message */}
                   <div className="space-y-2">
-                    <Label htmlFor="message">Message for the Couple</Label>
+                    <Label htmlFor="message">
+                      {isEn ? "Message for the Couple" : "Ucapan untuk Mempelai"}
+                    </Label>
                     <Textarea
                       id="message"
                       name="message"
-                      placeholder="Write your wishes or message..."
+                      placeholder={
+                        isEn
+                          ? "Write your wishes or message..."
+                          : "Tulis doa dan ucapan Anda..."
+                      }
                       value={formData.message}
                       onChange={handleChange}
                       rows={4}
@@ -267,12 +289,12 @@ export function RSVP({ data }: RSVPProps) {
                             d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                           ></path>
                         </svg>
-                        Submitting...
+                        {isEn ? "Submitting..." : "Mengirim..."}
                       </>
                     ) : (
                       <>
                         <Send className="w-5 h-5 mr-2" />
-                        Submit RSVP
+                        {isEn ? "Submit RSVP" : "Kirim RSVP"}
                       </>
                     )}
                   </Button>

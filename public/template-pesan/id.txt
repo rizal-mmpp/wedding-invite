@@ -1,0 +1,24 @@
+Yth. Bapak/Ibu/Saudara/i
+*{nama_tamu}*
+Di tempat
+——————————————
+Dengan sukacita, kami mengundang Bapak/Ibu/Saudara/i untuk hadir pada acara:
+✨ Pernikahan {nama_mempelai_pria} & {nama_mempelai_wanita} ✨
+
+Pemberkatan Nikah
+🗓️ {tanggal_pemberkatan}
+🕛 {waktu_pemberkatan}
+📍 {lokasi_pemberkatan}
+
+Resepsi Pernikahan
+🗓️ {tanggal_resepsi}
+🕛 {waktu_resepsi}
+📍 {lokasi_resepsi}
+
+Undangan digital dapat diakses melalui:
+{tautan_undangan}
+
+Merupakan kehormatan bagi kami apabila Bapak/Ibu/Saudara/i berkenan hadir dan memberikan doa restu. 🙏
+
+Hormat kami,
+{nama_mempelai_pria} & {nama_mempelai_wanita}

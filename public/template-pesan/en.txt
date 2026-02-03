@@ -1,0 +1,24 @@
+Dear Mr./Mrs./Ms.
+*{nama_tamu}*
+Present
+——————————————
+With joy, we invite you to attend our wedding:
+✨ {nama_mempelai_pria} & {nama_mempelai_wanita} ✨
+
+Wedding Ceremony
+🗓️ {tanggal_pemberkatan}
+🕛 {waktu_pemberkatan}
+📍 {lokasi_pemberkatan}
+
+Wedding Reception
+🗓️ {tanggal_resepsi}
+🕛 {waktu_resepsi}
+📍 {lokasi_resepsi}
+
+The digital invitation can be accessed via:
+{tautan_undangan}
+
+It would be our honor if you could attend and give your blessing. 🙏
+
+Sincerely,
+{nama_mempelai_pria} & {nama_mempelai_wanita}

@@ -8,9 +8,11 @@ import type { WeddingData } from "@/types/wedding";
 
 interface FooterProps {
   data: WeddingData;
+  lang: "id" | "en";
 }
 
-export function Footer({ data }: FooterProps) {
+export function Footer({ data, lang }: FooterProps) {
+  const isEn = lang === "en";
   const currentYear = new Date().getFullYear();
 
   return (
@@ -30,8 +32,9 @@ export function Footer({ data }: FooterProps) {
 
           {/* Thank you message */}
           <p className="text-white/80 max-w-lg mx-auto mb-8">
-            Thank you for being part of our special day. Your presence and
-            blessings mean the world to us.
+            {isEn
+              ? "Thank you for being part of our special day. Your presence and blessings mean the world to us."
+              : "Terima kasih telah menjadi bagian dari hari spesial kami. Kehadiran dan doa Anda sangat berarti bagi kami."}
           </p>
 
           {/* Social links */}
@@ -69,13 +72,13 @@ export function Footer({ data }: FooterProps) {
           {/* Navigation */}
           <nav className="flex flex-wrap justify-center gap-6 mb-8 text-sm">
             {[
-              { href: "#hero", label: "Home" },
-              { href: "#couple", label: "Couple" },
-              { href: "#events", label: "Events" },
-              { href: "#gallery", label: "Gallery" },
-              { href: "#story", label: "Our Story" },
+              { href: "#hero", label: isEn ? "Home" : "Beranda" },
+              { href: "#couple", label: isEn ? "Couple" : "Mempelai" },
+              { href: "#events", label: isEn ? "Events" : "Acara" },
+              { href: "#gallery", label: isEn ? "Gallery" : "Galeri" },
+              { href: "#story", label: isEn ? "Our Story" : "Kisah" },
               { href: "#rsvp", label: "RSVP" },
-              { href: "#gifts", label: "Gifts" },
+              { href: "#gifts", label: isEn ? "Gifts" : "Hadiah" },
             ].map((link) => (
               <a
                 key={link.href}

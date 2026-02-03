@@ -10,17 +10,21 @@ import type { Couple as CoupleType, WeddingData } from "@/types/wedding";
 
 interface CoupleProps {
   data: WeddingData;
+  lang: "id" | "en";
 }
 
 const PersonCard = ({
   person,
   side,
   delay,
+  lang,
 }: {
   person: CoupleType["groom"] | CoupleType["bride"];
   side: "left" | "right";
   delay: number;
+  lang: "id" | "en";
 }) => {
+  const isEn = lang === "en";
   return (
     <motion.div
       initial={{ opacity: 0, x: side === "left" ? -50 : 50 }}
@@ -45,7 +49,13 @@ const PersonCard = ({
       </p>
       <p className="text-muted-foreground text-sm mb-1">{person.childOrder}</p> */}
       <p className="text-muted-foreground text-sm">
-        {side === "left" ? "Putra dari" : "Putri dari"} {person.fatherName} & {person.motherName}
+        {side === "left"
+          ? isEn
+            ? "Son of"
+            : "Putra dari"
+          : isEn
+          ? "Daughter of"
+          : "Putri dari"} {person.fatherName} & {person.motherName}
       </p>
       {person.instagram && (
         <Button
@@ -68,7 +78,8 @@ const PersonCard = ({
   );
 };
 
-export function Couple({ data }: CoupleProps) {
+export function Couple({ data, lang }: CoupleProps) {
+  const isEn = lang === "en";
   return (
     <section
       id="couple"
@@ -84,17 +95,17 @@ export function Couple({ data }: CoupleProps) {
           className="text-center mb-16"
         >
           <p className="text-wedding-gold uppercase tracking-widest text-sm mb-4">
-            We Are Getting Married
+            {isEn ? "We Are Getting Married" : "Kami Akan Menikah"}
           </p>
           <h2 className="font-script text-4xl md:text-5xl lg:text-6xl text-foreground mb-6">
-            The Happy Couple
+            {isEn ? "The Happy Couple" : "Mempelai"}
           </h2>
           <Separator className="w-24 mx-auto bg-wedding-gold h-0.5" />
         </motion.div>
 
         {/* Couple Cards */}
         <div className="grid md:grid-cols-2 gap-12 md:gap-8 lg:gap-16 items-center max-w-5xl mx-auto">
-          <PersonCard person={data.couple.groom} side="left" delay={0.2} />
+          <PersonCard person={data.couple.groom} side="left" delay={0.2} lang={lang} />
 
           {/* Heart Divider - visible on md and up */}
           <div className="hidden md:flex absolute left-1/2 transform -translate-x-1/2 z-10">
@@ -109,7 +120,7 @@ export function Couple({ data }: CoupleProps) {
             </motion.div>
           </div>
 
-          <PersonCard person={data.couple.bride} side="right" delay={0.4} />
+          <PersonCard person={data.couple.bride} side="right" delay={0.4} lang={lang} />
         </div>
 
         {/* Mobile Heart Divider */}

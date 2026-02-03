@@ -5,6 +5,7 @@ import type { WeddingData } from "@/types/wedding";
 interface InvitationCoverProps {
   data: WeddingData;
   guestName?: string;
+  lang: "id" | "en";
   onOpen: () => void;
   onImageLoad?: () => void;
 }
@@ -12,10 +13,12 @@ interface InvitationCoverProps {
 export default function InvitationCover({
   data,
   guestName = "Nama Tamu",
+  lang,
   onOpen,
   onImageLoad,
 }: InvitationCoverProps) {
   const [isOpening, setIsOpening] = useState(false);
+  const isEn = lang === "en";
 
   const handleOpenInvitation = () => {
     setIsOpening(true);
@@ -50,7 +53,7 @@ export default function InvitationCover({
         {/* Top Section - Title */}
         <div className="text-center mt-8">
           <p className="text-white/90 text-sm tracking-[0.3em] uppercase mb-2 font-light">
-            The Wedding of
+            {isEn ? "The Wedding of" : "Pernikahan"}
           </p>
           <h1 className="font-script text-4xl md:text-5xl lg:text-6xl text-white drop-shadow-lg">
             {data.couple.groom.name} & {data.couple.bride.name}
@@ -59,8 +62,12 @@ export default function InvitationCover({
 
         {/* Bottom Section - Guest Info & Button */}
         <div className="text-center mb-8">
-          <p className="text-white/80 text-sm mb-1">Kepada Yth.</p>
-          <p className="text-white/80 text-sm mb-2">Bapak/Ibu/ Saudara/i</p>
+          <p className="text-white/80 text-sm mb-1">
+            {isEn ? "Dear" : "Kepada Yth."}
+          </p>
+          <p className="text-white/80 text-sm mb-2">
+            {isEn ? "Mr./Mrs./Family" : "Bapak/Ibu/ Saudara/i"}
+          </p>
           <h2 className="font-script text-2xl md:text-3xl text-white mb-6">
             {guestName}
           </h2>
@@ -84,7 +91,7 @@ export default function InvitationCover({
               />
             </svg>
             <span className="text-sm tracking-[0.2em] uppercase font-medium">
-              Buka Undangan
+              {isEn ? "Open Invitation" : "Buka Undangan"}
             </span>
           </button>
         </div>

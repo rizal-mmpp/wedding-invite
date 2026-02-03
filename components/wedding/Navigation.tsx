@@ -6,17 +6,21 @@ import { Menu, X, Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
-const navLinks = [
-  { href: "#hero", label: "Home" },
-  { href: "#couple", label: "Couple" },
-  { href: "#events", label: "Events" },
-  { href: "#gallery", label: "Gallery" },
-  { href: "#story", label: "Story" },
-  { href: "#rsvp", label: "RSVP" },
-  { href: "#gifts", label: "Gifts" },
-];
+interface NavigationProps {
+  lang: "id" | "en";
+}
 
-export function Navigation() {
+export function Navigation({ lang }: NavigationProps) {
+  const isEn = lang === "en";
+  const navLinks = [
+    { href: "#hero", label: isEn ? "Home" : "Beranda" },
+    { href: "#couple", label: isEn ? "Couple" : "Mempelai" },
+    { href: "#events", label: isEn ? "Events" : "Acara" },
+    { href: "#gallery", label: isEn ? "Gallery" : "Galeri" },
+    { href: "#story", label: isEn ? "Story" : "Kisah" },
+    { href: "#rsvp", label: "RSVP" },
+    { href: "#gifts", label: isEn ? "Gifts" : "Hadiah" },
+  ];
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [activeSection, setActiveSection] = useState("hero");

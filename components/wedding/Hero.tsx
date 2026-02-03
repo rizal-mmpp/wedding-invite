@@ -10,9 +10,11 @@ import type { WeddingData } from "@/types/wedding";
 
 interface HeroProps {
   data: WeddingData;
+  lang: "id" | "en";
 }
 
-export function Hero({ data }: HeroProps) {
+export function Hero({ data, lang }: HeroProps) {
+  const isEn = lang === "en";
   const [isDesktop, setIsDesktop] = useState(false);
   const [countdown, setCountdown] = useState({
     days: 0,
@@ -70,7 +72,7 @@ export function Hero({ data }: HeroProps) {
             transition={{ duration: 0.8 }}
           >
             <p className="text-lg md:text-xl font-light tracking-widest uppercase mb-4">
-              The Wedding of
+              {isEn ? "The Wedding of" : "Pernikahan"}
             </p>
           </motion.div>
 
@@ -104,10 +106,10 @@ export function Hero({ data }: HeroProps) {
             className="grid grid-cols-4 gap-4 md:gap-8 max-w-lg mx-auto mb-12"
           >
             {[
-              { value: countdown.days, label: "Hari" },
-              { value: countdown.hours, label: "Jam" },
-              { value: countdown.minutes, label: "Menit" },
-              { value: countdown.seconds, label: "Detik" },
+              { value: countdown.days, label: isEn ? "Days" : "Hari" },
+              { value: countdown.hours, label: isEn ? "Hours" : "Jam" },
+              { value: countdown.minutes, label: isEn ? "Minutes" : "Menit" },
+              { value: countdown.seconds, label: isEn ? "Seconds" : "Detik" },
             ].map((item, index) => (
               <div
                 key={item.label}

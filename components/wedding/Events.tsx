@@ -11,10 +11,20 @@ import type { Event, WeddingData } from "@/types/wedding";
 
 interface EventsProps {
   data: WeddingData;
+  lang: "id" | "en";
 }
 
-const EventCard = ({ event, index }: { event: Event; index: number }) => {
+const EventCard = ({
+  event,
+  index,
+  lang,
+}: {
+  event: Event;
+  index: number;
+  lang: "id" | "en";
+}) => {
   const isAkad = event.name.toLowerCase().includes("akad");
+  const isEn = lang === "en";
 
   return (
     <motion.div
@@ -119,15 +129,24 @@ const EventCard = ({ event, index }: { event: Event; index: number }) => {
   );
 };
 
-export function Events({ data }: EventsProps) {
+export function Events({ data, lang }: EventsProps) {
+  const isEn = lang === "en";
   const handleAddToCalendar = () => {
     // Use the first event (main wedding event) for the calendar
     const mainEvent = data.events[0];
     if (!mainEvent) return;
 
     const calendarUrl = generateGoogleCalendarUrl({
-      title: `Wedding of ${data.couple.groom.name} & ${data.couple.bride.name} - ${mainEvent.name}`,
-      description: `You are invited to the wedding celebration!\n\n${mainEvent.description || ""}\n\nVenue: ${mainEvent.venue}\nAddress: ${mainEvent.address}`,
+      title: `${isEn ? "Wedding" : "Pernikahan"} of ${data.couple.groom.name} & ${
+        data.couple.bride.name
+      } - ${mainEvent.name}`,
+      description: isEn
+        ? `You are invited to the wedding celebration!\n\n${
+            mainEvent.description || ""
+          }\n\nVenue: ${mainEvent.venue}\nAddress: ${mainEvent.address}`
+        : `Anda diundang untuk merayakan pernikahan!\n\n${
+            mainEvent.description || ""
+          }\n\nTempat: ${mainEvent.venue}\nAlamat: ${mainEvent.address}`,
       location: `${mainEvent.venue}, ${mainEvent.address}`,
       startDate: mainEvent.date,
       startTime: mainEvent.time,
@@ -153,10 +172,10 @@ export function Events({ data }: EventsProps) {
           className="text-center mb-16"
         >
           <p className="text-wedding-gold uppercase tracking-widest text-sm mb-4">
-            Save The Date
+            {isEn ? "Save The Date" : "Simpan Tanggal"}
           </p>
           <h2 className="font-script text-4xl md:text-5xl lg:text-6xl text-foreground mb-6">
-            Wedding Events
+            {isEn ? "Wedding Events" : "Acara Pernikahan"}
           </h2>
           <Separator className="w-24 mx-auto bg-wedding-gold h-0.5" />
         </motion.div>
@@ -164,7 +183,7 @@ export function Events({ data }: EventsProps) {
         {/* Events Grid */}
         <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
           {data.events.map((event, index) => (
-            <EventCard key={event.id} event={event} index={index} />
+            <EventCard key={event.id} event={event} index={index} lang={lang} />
           ))}
         </div>
 
@@ -177,11 +196,13 @@ export function Events({ data }: EventsProps) {
           className="text-center mt-12"
         >
           <p className="text-muted-foreground mb-4">
-            Don&apos;t forget to mark your calendar!
+            {isEn
+              ? "Don't forget to mark your calendar!"
+              : "Jangan lupa tandai di kalender Anda!"}
           </p>
           <Button variant="wedding" size="xl" onClick={handleAddToCalendar}>
             <Calendar className="w-5 h-5 mr-2" />
-            Add to Calendar
+            {isEn ? "Add to Calendar" : "Tambahkan ke Kalender"}
           </Button>
         </motion.div>
       </div>

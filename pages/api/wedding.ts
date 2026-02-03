@@ -1,7 +1,8 @@
 import type { NextApiRequest, NextApiResponse } from "next";
+import { getGuestBySlug } from "@/lib/db";
 import type { WeddingData, APIResponse } from "@/types/wedding";
 
-export const dummyWeddingData: WeddingData = {
+export const dummyWeddingDataId: WeddingData = {
   id: "1",
   slug: "rizal-royanti",
   backgroundImage: "/assets/prewedding-home.jpg",
@@ -151,14 +152,97 @@ export const dummyWeddingData: WeddingData = {
   },
 };
 
+export const dummyWeddingDataEn: WeddingData = {
+  ...dummyWeddingDataId,
+  quote: {
+    text: "So they are no longer two, but one flesh. Therefore what God has joined together, let no one separate.",
+    source: "Matthew 19:6",
+  },
+  events: [
+    {
+      id: "1",
+      name: "Wedding Blessing",
+      date: "2026-02-16",
+      time: "10:00",
+      endTime: "11:00",
+      venue: "GKA Leppan City Blessing",
+      address: "Leppan Village, Toraja",
+      mapUrl: "",
+    },
+    {
+      id: "2",
+      name: "Reception",
+      date: "2026-02-16",
+      time: "12:00",
+      endTime: "14:00",
+      venue: "Bride's residence",
+      address: "Leppan Village, Toraja",
+      mapUrl: "",
+    },
+  ],
+  loveStory: [
+    {
+      id: "1",
+      title: "First Met",
+      date: "2020-01-15",
+      description:
+        "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+      image: "/assets/gallery-mobile/photo-1.jpg",
+    },
+    {
+      id: "2",
+      title: "Getting Closer",
+      date: "2020-06-20",
+      description:
+        "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+      image: "/assets/gallery-mobile/photo-2.jpg",
+    },
+    {
+      id: "3",
+      title: "Officially Dating",
+      date: "2021-02-14",
+      description:
+        "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+      image: "/assets/gallery-mobile/photo-3.jpg",
+    },
+    {
+      id: "4",
+      title: "Engagement",
+      date: "2023-12-25",
+      description:
+        "On a special Christmas moment, Rizal proposed to Royanti with sincerity and love.",
+      image: "/assets/gallery-mobile/photo-4.jpg",
+    },
+  ],
+};
+
 export default function handler(
   req: NextApiRequest,
   res: NextApiResponse<APIResponse<WeddingData>>
 ) {
   if (req.method === "GET") {
+    const slugParam = Array.isArray(req.query.slug)
+      ? req.query.slug[0]
+      : req.query.slug;
+    let langFromGuest: "id" | "en" | undefined;
+    if (slugParam && typeof slugParam === "string") {
+      const guest = getGuestBySlug(slugParam);
+      if (!guest) {
+        return res.status(404).json({
+          success: false,
+          error: "Guest not found",
+        });
+      }
+      langFromGuest = guest.language;
+    }
+    const langParam = Array.isArray(req.query.lang)
+      ? req.query.lang[0]
+      : req.query.lang;
+    const lang = (langFromGuest ?? langParam ?? "id").toLowerCase();
+    const data = lang === "en" ? dummyWeddingDataEn : dummyWeddingDataId;
     res.status(200).json({
       success: true,
-      data: dummyWeddingData,
+      data,
     });
   } else {
     res.status(405).json({

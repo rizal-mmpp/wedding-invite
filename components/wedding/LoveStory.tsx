@@ -10,9 +10,11 @@ import type { WeddingData } from "@/types/wedding";
 
 interface LoveStoryProps {
   data: WeddingData;
+  lang: "id" | "en";
 }
 
-export function LoveStory({ data }: LoveStoryProps) {
+export function LoveStory({ data, lang }: LoveStoryProps) {
+  const isEn = lang === "en";
   return (
     <section id="story" className="section-padding bg-wedding-cream">
       <div className="container mx-auto px-4">
@@ -25,10 +27,10 @@ export function LoveStory({ data }: LoveStoryProps) {
           className="text-center mb-16"
         >
           <p className="text-wedding-gold uppercase tracking-widest text-sm mb-4">
-            How We Met
+            {isEn ? "How We Met" : "Bagaimana Kami Bertemu"}
           </p>
           <h2 className="font-script text-4xl md:text-5xl lg:text-6xl text-foreground mb-6">
-            Our Love Story
+            {isEn ? "Our Love Story" : "Kisah Cinta Kami"}
           </h2>
           <Separator className="w-24 mx-auto bg-wedding-gold h-0.5" />
         </motion.div>
@@ -107,10 +109,10 @@ export function LoveStory({ data }: LoveStoryProps) {
             whileInView={{ opacity: 1 }}
             viewport={{ once: true }}
             transition={{ duration: 0.5, delay: 0.5 }}
-            className="text-center mt-6 font-script text-3xl text-wedding-gold"
-          >
-            And the journey continues...
-          </motion.p>
+          className="text-center mt-6 font-script text-3xl text-wedding-gold"
+        >
+          {isEn ? "And the journey continues..." : "Dan perjalanan kami berlanjut..."}
+        </motion.p>
         </div>
       </div>
     </section>

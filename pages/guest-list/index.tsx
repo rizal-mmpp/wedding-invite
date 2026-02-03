@@ -12,6 +12,7 @@ import {
   AlertCircle,
   MessageCircle,
   Send,
+  Download,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -98,15 +99,15 @@ function buildMessage(
   weddingData: WeddingData | undefined
 ): string {
   if (!weddingData) return "";
-  const link = `${getSiteUrl()}/rsvp/${guest.slug}`;
+  const link = `${getSiteUrl()}/guest/${guest.slug}`;
   const locale = guest.language === "en" ? "en-US" : "id-ID";
   const blessingEvent = weddingData.events[0];
   const receptionEvent = weddingData.events[1] ?? weddingData.events[0];
   const namaTamu = `${guest.title ? `${guest.title} ` : ""}${guest.name}`;
   const values: Record<string, string> = {
     nama_tamu: namaTamu,
-    nama_mempelai_pria: weddingData.couple.groom.name,
-    nama_mempelai_wanita: weddingData.couple.bride.name,
+    nama_mempelai_pria: weddingData.couple.groom.fullName,
+    nama_mempelai_wanita: weddingData.couple.bride.fullName,
     tanggal_pemberkatan: blessingEvent
       ? formatDate(blessingEvent.date, locale)
       : "",
@@ -226,9 +227,10 @@ export default function GuestListPage() {
       showNotification("error", "Wedding data is not ready yet");
       return;
     }
-    const encoded = encodeURIComponent(text);
-    const link = `https://wa.me/${guest.whatsapp}?text=${encoded}`;
-    window.open(link, "_blank");
+    const url = new URL("https://api.whatsapp.com/send");
+    url.searchParams.set("phone", guest.whatsapp);
+    url.searchParams.set("text", text);
+    window.open(url.toString(), "_blank");
     await updateMessageSent(guest.id, true);
   };
 
@@ -255,26 +257,6 @@ export default function GuestListPage() {
     }
   };
 
-  const updateLanguage = async (id: string, language: "id" | "en") => {
-    try {
-      const response = await fetch(`/api/guest-list?id=${id}` as string, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ language }),
-      });
-      const result = await response.json();
-      if (result.success) {
-        setGuests((prev) =>
-          prev.map((g) => (g.id === id ? result.data : g))
-        );
-      } else {
-        showNotification("error", result.error || "Failed to update language");
-      }
-    } catch (err) {
-      showNotification("error", "Failed to update language");
-    }
-  };
-
   const handleDeleteSingle = async (id: string, name: string) => {
     if (!confirm(`Are you sure you want to delete ${name}?`)) return;
     try {
@@ -291,6 +273,65 @@ export default function GuestListPage() {
     } catch (err) {
       showNotification("error", "Failed to delete guest");
     }
+  };
+
+  const handleExportData = () => {
+    if (!guests.length) {
+      showNotification("error", "No guests to export");
+      return;
+    }
+    const headers = [
+      "name",
+      "title",
+      "whatsapp",
+      "slug",
+      "invited",
+      "rsvp_status",
+      "rsvp_message",
+      "message_sent",
+      "message_sent_at",
+      "country",
+      "language",
+      "created_at",
+      "updated_at",
+    ];
+    const rows = guests.map((guest) => [
+      guest.name,
+      guest.title ?? "",
+      guest.whatsapp,
+      guest.slug,
+      guest.invited ? "true" : "false",
+      guest.rsvpStatus,
+      guest.rsvpMessage ?? "",
+      guest.messageSent ? "true" : "false",
+      guest.messageSentAt ?? "",
+      guest.country,
+      guest.language,
+      guest.createdAt,
+      guest.updatedAt,
+    ]);
+
+    const csv = [headers, ...rows]
+      .map((row) =>
+        row
+          .map((value) => {
+            const escaped = String(value ?? "").replace(/"/g, '""');
+            return `"${escaped}"`;
+          })
+          .join(",")
+      )
+      .join("\n");
+
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    const timestamp = new Date().toISOString().slice(0, 10);
+    link.href = url;
+    link.download = `guest-list-${timestamp}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
   };
 
 
@@ -405,6 +446,10 @@ export default function GuestListPage() {
                 <Button asChild variant="outline">
                   <a href="/guest-list/import">Import Guests</a>
                 </Button>
+                <Button variant="outline" onClick={handleExportData}>
+                  <Download className="w-4 h-4 mr-2" />
+                  Export Data
+                </Button>
                 <Button asChild variant="outline">
                   <a href="/guest-list/messages">View Messages</a>
                 </Button>
@@ -495,7 +540,6 @@ export default function GuestListPage() {
                     <th className="text-left p-3 font-semibold text-foreground">Name</th>
                     <th className="text-left p-3 font-semibold text-foreground">WhatsApp</th>
                     <th className="text-center p-3 font-semibold text-foreground">Invitation Sent</th>
-                    <th className="text-center p-3 font-semibold text-foreground">RSVP</th>
                     <th className="text-center p-3 font-semibold text-foreground">Attendance</th>
                     <th className="text-center p-3 font-semibold text-foreground">Sent</th>
                     <th className="text-center p-3 font-semibold text-foreground">Actions</th>
@@ -508,7 +552,8 @@ export default function GuestListPage() {
                       initial={{ opacity: 0, x: -20 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: index * 0.05 }}
-                      className="border-b border-wedding-gold/10 hover:bg-wedding-gold/5"
+                      className="border-b border-wedding-gold/10 hover:bg-wedding-gold/5 cursor-pointer"
+                      onClick={() => (window.location.href = `/guest-list/${guest.slug}`)}
                     >
                       <td className="p-3">
                         <div className="font-medium text-foreground">
@@ -529,7 +574,10 @@ export default function GuestListPage() {
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => handleWhatsApp(guest)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleWhatsApp(guest);
+                            }}
                             className="h-8 px-2"
                             title="Send WhatsApp"
                           >
@@ -539,16 +587,10 @@ export default function GuestListPage() {
                           <Button
                             variant="ghost"
                             size="sm"
-                            className="h-8 px-2"
-                            title="View Details"
-                            asChild
-                          >
-                            <a href={`/guest-list/${guest.slug}`}>Details</a>
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleCopyMessage(guest)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleCopyMessage(guest);
+                            }}
                             className="h-8 w-8 p-0"
                             title="Copy Message"
                           >
@@ -557,7 +599,10 @@ export default function GuestListPage() {
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => updateMessageSent(guest.id, !guest.messageSent)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              updateMessageSent(guest.id, !guest.messageSent);
+                            }}
                             className="h-8 w-8 p-0"
                             title="Toggle Sent"
                           >
@@ -566,7 +611,10 @@ export default function GuestListPage() {
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => handleDeleteSingle(guest.id, guest.name)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeleteSingle(guest.id, guest.name);
+                            }}
                             className="h-8 w-8 p-0 text-red-500 hover:text-red-700 hover:bg-red-50"
                             title="Delete"
                           >

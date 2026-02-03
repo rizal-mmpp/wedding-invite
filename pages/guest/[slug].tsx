@@ -296,15 +296,18 @@ export default function GuestInvitationPage({ weddingData, guest }: GuestPagePro
         />
       )}
 
-      {!showCover && <Navigation lang={lang} />}
-
       <main>
         <Hero data={weddingData} lang={lang} />
         <Couple data={weddingData} lang={lang} />
         <Events data={weddingData} lang={lang} />
+        <RSVP
+          data={weddingData}
+          lang={lang}
+          guestName={guestName}
+          guestSlug={guest.slug}
+        />
         <Gallery data={weddingData} lang={lang} />
         {/* <LoveStory data={weddingData} lang={lang} /> */}
-        <RSVP data={weddingData} lang={lang} />
         <Gifts data={weddingData} lang={lang} />
       </main>
 

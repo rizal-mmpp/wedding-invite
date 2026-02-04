@@ -22,6 +22,7 @@ interface GuestDetail {
   title?: string;
   slug: string;
   language: "id" | "en";
+  isGroup: boolean;
   rsvpStatus: "attending" | "not_attending" | "not_responded";
 }
 
@@ -292,6 +293,8 @@ export default function GuestInvitationPage({ weddingData, guest }: GuestPagePro
           lang={lang}
           guestName={guestName}
           guestSlug={guest.slug}
+          isGroup={guest.isGroup}
+          rsvpStatus={guest.rsvpStatus}
         />
         <Gallery data={weddingData} lang={lang} />
         {/* <LoveStory data={weddingData} lang={lang} /> */}

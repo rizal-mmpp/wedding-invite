@@ -16,6 +16,7 @@ interface GuestResponse {
   whatsapp: string;
   slug: string;
   invited: boolean;
+  isGroup: boolean;
   rsvpStatus: "attending" | "not_attending" | "not_responded";
   rsvpMessage?: string;
   messageSent: boolean;
@@ -34,6 +35,7 @@ function formatGuest(row: GuestListRow): GuestResponse {
     whatsapp: row.whatsapp,
     slug: row.slug,
     invited: row.invited,
+    isGroup: row.is_group,
     rsvpStatus: row.rsvp_status,
     rsvpMessage: row.rsvp_message || undefined,
     messageSent: row.message_sent,
@@ -124,7 +126,16 @@ export default async function handler(
     }
 
     if (req.method === "POST") {
-      const { name, title, whatsapp, invited, rsvpStatus, language, country } = req.body;
+      const {
+        name,
+        title,
+        whatsapp,
+        invited,
+        rsvpStatus,
+        language,
+        country,
+        isGroup,
+      } = req.body;
 
       if (!name || !whatsapp) {
         return res.status(400).json({
@@ -160,6 +171,7 @@ export default async function handler(
             : "not_responded",
         country: resolvedCountry,
         language: language === "en" ? "en" : resolvedCountry === "Indonesia" ? "id" : "en",
+        isGroup: typeof isGroup === "boolean" ? isGroup : false,
       });
 
       return res.status(201).json({
@@ -187,6 +199,7 @@ export default async function handler(
         messageSentAt,
         language,
         country,
+        isGroup,
       } = req.body;
 
       const existing = (await getAllGuests()).find(
@@ -226,6 +239,7 @@ export default async function handler(
             : country
             ? getLanguageForCountry(resolvedCountry)
             : undefined,
+        isGroup: typeof isGroup === "boolean" ? isGroup : undefined,
       });
 
       if (!updated) {

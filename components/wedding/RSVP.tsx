@@ -16,16 +16,34 @@ interface RSVPProps {
   lang: "id" | "en";
   guestName?: string;
   guestSlug?: string;
+  isGroup?: boolean;
+  rsvpStatus?: "attending" | "not_attending" | "not_responded";
 }
 
-export function RSVP({ data, lang, guestName, guestSlug }: RSVPProps) {
+interface GroupAttendee {
+  name: string;
+  phone: string;
+}
+
+export function RSVP({
+  data,
+  lang,
+  guestName,
+  guestSlug,
+  isGroup = false,
+  rsvpStatus = "not_responded",
+}: RSVPProps) {
   const isEn = lang === "en";
   const defaultName = useMemo(() => guestName?.trim() || "", [guestName]);
+  const isAlreadyResponded = !isGroup && rsvpStatus !== "not_responded";
   const [formData, setFormData] = useState({
     name: defaultName,
     attendance: "attending" as "attending" | "not_attending",
     message: "",
   });
+  const [groupAttendees, setGroupAttendees] = useState<GroupAttendee[]>([
+    { name: "", phone: "" },
+  ]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [error, setError] = useState("");
@@ -40,23 +58,79 @@ export function RSVP({ data, lang, guestName, guestSlug }: RSVPProps) {
     setError("");
 
     try {
-      const response = await fetch(`/api/guest-list/${guestSlug}`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          attendance: formData.attendance,
-          message: formData.message,
-        }),
-      });
+      if (isGroup) {
+        const sanitized = groupAttendees
+          .map((attendee) => ({
+            name: attendee.name.trim(),
+            phone: attendee.phone.trim(),
+          }))
+          .filter((attendee) => attendee.name || attendee.phone);
 
-      const result = await response.json();
+        if (!sanitized.length) {
+          setError(
+            isEn
+              ? "Please add at least one attendee."
+              : "Mohon tambahkan minimal satu tamu."
+          );
+          return;
+        }
 
-      if (result.success) {
-        setIsSubmitted(true);
+        if (sanitized.some((attendee) => !attendee.name || !attendee.phone)) {
+          setError(
+            isEn
+              ? "Each attendee must include a name and phone number."
+              : "Setiap tamu wajib mengisi nama dan nomor telepon."
+          );
+          return;
+        }
+
+        const responses = await Promise.all(
+          sanitized.map((attendee) =>
+            fetch("/api/submit-rsvp", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                name: attendee.name,
+                phone: attendee.phone,
+                attendance: formData.attendance,
+                numberOfGuests: 1,
+                message: formData.message,
+                guestSlug,
+              }),
+            })
+          )
+        );
+
+        const results = await Promise.all(responses.map((response) => response.json()));
+        const failed = results.find((result) => !result?.success);
+
+        if (failed) {
+          setError(failed.error || "Something went wrong. Please try again.");
+        } else {
+          setIsSubmitted(true);
+          setGroupAttendees([{ name: "", phone: "" }]);
+        }
       } else {
-        setError(result.error || "Something went wrong. Please try again.");
+        const response = await fetch(`/api/guest-list/${guestSlug}`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            attendance: formData.attendance,
+            message: formData.message,
+          }),
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+          setIsSubmitted(true);
+        } else {
+          setError(result.error || "Something went wrong. Please try again.");
+        }
       }
     } catch (err) {
       setError("Failed to submit RSVP. Please try again.");
@@ -73,6 +147,26 @@ export function RSVP({ data, lang, guestName, guestSlug }: RSVPProps) {
       ...prev,
       [name]: value,
     }));
+  };
+
+  const handleGroupChange = (
+    index: number,
+    field: keyof GroupAttendee,
+    value: string
+  ) => {
+    setGroupAttendees((prev) =>
+      prev.map((attendee, idx) =>
+        idx === index ? { ...attendee, [field]: value } : attendee
+      )
+    );
+  };
+
+  const handleAddAttendee = () => {
+    setGroupAttendees((prev) => [...prev, { name: "", phone: "" }]);
+  };
+
+  const handleRemoveAttendee = (index: number) => {
+    setGroupAttendees((prev) => prev.filter((_, idx) => idx !== index));
   };
 
   return (
@@ -114,7 +208,7 @@ export function RSVP({ data, lang, guestName, guestSlug }: RSVPProps) {
                 </CardTitle>
               </CardHeader>
             <CardContent>
-              {isSubmitted ? (
+              {isSubmitted || isAlreadyResponded ? (
                 <motion.div
                   initial={{ scale: 0.9, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
@@ -134,20 +228,92 @@ export function RSVP({ data, lang, guestName, guestSlug }: RSVPProps) {
                 </motion.div>
               ) : (
                 <form onSubmit={handleSubmit} className="space-y-6">
-                  {/* Name */}
-                  <div className="space-y-2">
-                    <Label htmlFor="name">{isEn ? "Full Name" : "Nama Lengkap"} *</Label>
-                    <Input
-                      id="name"
-                      name="name"
-                      placeholder={
-                        isEn ? "Enter your full name" : "Masukkan nama lengkap"
-                      }
-                      value={formData.name}
-                      onChange={handleChange}
-                      required
-                    />
-                  </div>
+                  {!isGroup && (
+                    <div className="space-y-2">
+                      <Label htmlFor="name">
+                        {isEn ? "Full Name" : "Nama Lengkap"} *
+                      </Label>
+                      <Input
+                        id="name"
+                        name="name"
+                        placeholder={
+                          isEn ? "Enter your full name" : "Masukkan nama lengkap"
+                        }
+                        value={formData.name}
+                        onChange={handleChange}
+                        required
+                      />
+                    </div>
+                  )}
+
+                  {isGroup && (
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <Label className="text-base">
+                          {isEn ? "Group Attendees" : "Daftar Tamu"}
+                        </Label>
+                        <Button type="button" variant="outline" onClick={handleAddAttendee}>
+                          {isEn ? "Add Attendee" : "Tambah Tamu"}
+                        </Button>
+                      </div>
+                      <div className="space-y-4">
+                        {groupAttendees.map((attendee, index) => (
+                          <div
+                            key={`attendee-${index}`}
+                            className="grid gap-3 rounded-lg border border-border p-4"
+                          >
+                            <div className="grid gap-3 md:grid-cols-2">
+                              <div className="space-y-2">
+                                <Label htmlFor={`attendee-name-${index}`}>
+                                  {isEn ? "Full Name" : "Nama Lengkap"} *
+                                </Label>
+                                <Input
+                                  id={`attendee-name-${index}`}
+                                  value={attendee.name}
+                                  onChange={(e) =>
+                                    handleGroupChange(index, "name", e.target.value)
+                                  }
+                                  placeholder={
+                                    isEn
+                                      ? "Enter full name"
+                                      : "Masukkan nama lengkap"
+                                  }
+                                  required
+                                />
+                              </div>
+                              <div className="space-y-2">
+                                <Label htmlFor={`attendee-phone-${index}`}>
+                                  {isEn ? "Phone Number" : "Nomor Telepon"} *
+                                </Label>
+                                <Input
+                                  id={`attendee-phone-${index}`}
+                                  value={attendee.phone}
+                                  onChange={(e) =>
+                                    handleGroupChange(index, "phone", e.target.value)
+                                  }
+                                  placeholder={
+                                    isEn ? "08xxxxxxxx" : "08xxxxxxxx"
+                                  }
+                                  required
+                                />
+                              </div>
+                            </div>
+                            {groupAttendees.length > 1 && (
+                              <div className="flex justify-end">
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  onClick={() => handleRemoveAttendee(index)}
+                                >
+                                  {isEn ? "Remove" : "Hapus"}
+                                </Button>
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
 
                   {/* Attendance */}
                   <div className="space-y-3">
@@ -265,8 +431,8 @@ export function RSVP({ data, lang, guestName, guestSlug }: RSVPProps) {
                     ) : (
                       <>
                         <span className="relative inline-flex items-center">
-                          <Send className="w-4 h-4 ml-2 transition-transform duration-200 group-hover:translate-x-1" />
                           {isEn ? "Submit" : "Kirim"}
+                          <Send className="w-4 h-4 ml-2 transition-transform duration-200 group-hover:translate-x-1" />
                         </span>
                       </>
                     )}

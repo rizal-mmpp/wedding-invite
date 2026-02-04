@@ -13,6 +13,7 @@ interface RSVPResponse {
   name: string;
   email?: string;
   phone?: string;
+  guestSlug?: string;
   attendance: "attending" | "not_attending" | "pending";
   numberOfGuests: number;
   message?: string;
@@ -25,6 +26,7 @@ function formatGuestResponse(guest: RSVPGuestRow): RSVPResponse {
     name: guest.name,
     email: guest.email || undefined,
     phone: guest.phone || undefined,
+    guestSlug: guest.guest_slug || undefined,
     attendance: guest.attendance,
     numberOfGuests: guest.number_of_guests,
     message: guest.message || undefined,
@@ -46,7 +48,7 @@ export default async function handler(
       });
     } else if (req.method === "POST") {
       // Create new RSVP
-      const { name, email, phone, attendance, numberOfGuests, message } = req.body;
+      const { name, email, phone, attendance, numberOfGuests, message, guestSlug } = req.body;
 
       if (!name || !attendance) {
         return res.status(400).json({
@@ -66,6 +68,7 @@ export default async function handler(
         name,
         email,
         phone,
+        guestSlug: typeof guestSlug === "string" ? guestSlug : undefined,
         attendance,
         numberOfGuests: numberOfGuests || 1,
         message,

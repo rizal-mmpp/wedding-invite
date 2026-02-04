@@ -23,6 +23,7 @@ export interface RSVPGuestRow {
   name: string;
   email: string | null;
   phone: string | null;
+  guest_slug: string | null;
   attendance: "attending" | "not_attending" | "pending";
   number_of_guests: number;
   message: string | null;
@@ -36,6 +37,7 @@ export interface GuestListRow {
   whatsapp: string;
   slug: string;
   invited: boolean;
+  is_group: boolean;
   rsvp_status: "attending" | "not_attending" | "not_responded";
   message_sent: boolean;
   message_sent_at: string | null;
@@ -74,6 +76,7 @@ export async function createRSVPGuest(guest: {
   name: string;
   email?: string;
   phone?: string;
+  guestSlug?: string;
   attendance: "attending" | "not_attending" | "pending";
   numberOfGuests?: number;
   message?: string;
@@ -85,6 +88,7 @@ export async function createRSVPGuest(guest: {
       name: guest.name,
       email: guest.email ?? null,
       phone: guest.phone ?? null,
+      guest_slug: guest.guestSlug ?? null,
       attendance: guest.attendance,
       number_of_guests: guest.numberOfGuests ?? 1,
       message: guest.message ?? null,
@@ -176,6 +180,7 @@ export async function createGuest(guest: {
   whatsapp: string;
   slug: string;
   invited?: boolean;
+  isGroup?: boolean;
   rsvpStatus?: "attending" | "not_attending" | "not_responded";
   country?: "Indonesia" | "Singapore" | "United States" | "Netherlands";
   language?: "id" | "en";
@@ -189,6 +194,7 @@ export async function createGuest(guest: {
       whatsapp: guest.whatsapp,
       slug: guest.slug,
       invited: guest.invited ?? false,
+      is_group: guest.isGroup ?? false,
       rsvp_status: guest.rsvpStatus ?? "not_responded",
       message_sent: false,
       country: guest.country ?? "Indonesia",
@@ -208,6 +214,7 @@ export async function updateGuest(
     whatsapp?: string;
     slug?: string;
     invited?: boolean;
+    isGroup?: boolean;
     rsvpStatus?: "attending" | "not_attending" | "not_responded";
     messageSent?: boolean;
     messageSentAt?: string | null;
@@ -223,6 +230,7 @@ export async function updateGuest(
   if (typeof updates.whatsapp === "string") fields.whatsapp = updates.whatsapp;
   if (typeof updates.slug === "string") fields.slug = updates.slug;
   if (typeof updates.invited === "boolean") fields.invited = updates.invited;
+  if (typeof updates.isGroup === "boolean") fields.is_group = updates.isGroup;
   if (updates.rsvpStatus) fields.rsvp_status = updates.rsvpStatus;
   if (typeof updates.messageSent === "boolean") fields.message_sent = updates.messageSent;
   if (updates.messageSentAt !== undefined) fields.message_sent_at = updates.messageSentAt;

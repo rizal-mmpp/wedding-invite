@@ -99,7 +99,7 @@ export default function GuestListImportPage() {
                 <Label htmlFor="csv">Or paste CSV content</Label>
                 <Textarea
                   id="csv"
-                  placeholder="name,title,whatsapp,country,invited,rsvp_status,language"
+                  placeholder="name,title,whatsapp,country,invited,is_group,rsvp_status,language"
                   value={csvContent}
                   onChange={(e) => setCsvContent(e.target.value)}
                   rows={6}

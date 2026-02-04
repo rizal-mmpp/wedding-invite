@@ -21,6 +21,7 @@ export default function GuestListNewPage() {
     title: "",
     whatsapp: "",
     invited: false,
+    isGroup: false,
     rsvpStatus: "not_responded" as "attending" | "not_attending" | "not_responded",
     country: "Indonesia" as GuestCountry,
     language: "id" as "id" | "en",
@@ -59,6 +60,7 @@ export default function GuestListNewPage() {
           title: formData.title.trim() || undefined,
           whatsapp: formData.whatsapp.trim(),
           invited: formData.invited,
+          isGroup: formData.isGroup,
           rsvpStatus: formData.rsvpStatus,
           country: formData.country,
           language: formData.language,
@@ -161,6 +163,24 @@ export default function GuestListNewPage() {
                   >
                     <option value="id">ID</option>
                     <option value="en">EN</option>
+                  </select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="isGroup">Invitation Type</Label>
+                  <select
+                    id="isGroup"
+                    name="isGroup"
+                    className="w-full border rounded px-2 py-2"
+                    value={formData.isGroup ? "group" : "single"}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        isGroup: e.target.value === "group",
+                      })
+                    }
+                  >
+                    <option value="single">Single Guest</option>
+                    <option value="group">Group Invitation</option>
                   </select>
                 </div>
                 {error && (

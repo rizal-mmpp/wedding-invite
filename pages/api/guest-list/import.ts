@@ -125,6 +125,7 @@ export default async function handler(
 
       const title = row.title?.trim() || undefined;
       const invited = toBoolean(row.invited);
+      const isGroup = toBoolean(row.is_group ?? row.isGroup);
       const rsvpStatusRaw = row.rsvp_status?.trim();
       const rsvpStatus =
         rsvpStatusRaw === "attending" || rsvpStatusRaw === "not_attending"
@@ -146,6 +147,7 @@ export default async function handler(
         whatsapp: normalizedWhatsApp,
         slug,
         invited: invited ?? false,
+        isGroup: isGroup ?? false,
         rsvpStatus,
         country,
         language,

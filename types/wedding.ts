@@ -56,6 +56,7 @@ export interface RSVPGuest {
   name: string;
   email?: string;
   phone?: string;
+  guestSlug?: string;
   attendance: "attending" | "not_attending" | "pending";
   numberOfGuests: number;
   message?: string;

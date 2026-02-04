@@ -28,6 +28,7 @@ interface GuestListItem {
   whatsapp: string;
   slug: string;
   invited: boolean;
+  isGroup: boolean;
   rsvpStatus: "attending" | "not_attending" | "not_responded";
   rsvpMessage?: string;
   messageSent: boolean;
@@ -284,6 +285,7 @@ export default function GuestListPage() {
       "whatsapp",
       "slug",
       "invited",
+      "is_group",
       "rsvp_status",
       "rsvp_message",
       "message_sent",
@@ -299,6 +301,7 @@ export default function GuestListPage() {
       guest.whatsapp,
       guest.slug,
       guest.invited ? "true" : "false",
+      guest.isGroup ? "true" : "false",
       guest.rsvpStatus,
       guest.rsvpMessage ?? "",
       guest.messageSent ? "true" : "false",

@@ -9,6 +9,7 @@ interface GuestDetailResponse {
   whatsapp: string;
   slug: string;
   invited: boolean;
+  isGroup: boolean;
   rsvpStatus: "attending" | "not_attending" | "not_responded";
   rsvpMessage?: string;
   messageSent: boolean;
@@ -30,6 +31,7 @@ function formatGuest(row: Awaited<ReturnType<typeof getGuestBySlug>>): GuestDeta
     whatsapp: row.whatsapp,
     slug: row.slug,
     invited: row.invited,
+    isGroup: row.is_group,
     rsvpStatus: row.rsvp_status,
     rsvpMessage: row.rsvp_message || undefined,
     messageSent: row.message_sent,

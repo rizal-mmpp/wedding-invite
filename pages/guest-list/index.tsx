@@ -64,9 +64,8 @@ Merupakan kehormatan bagi kami apabila Bapak/Ibu/Saudara/i berkenan hadir dan me
 
 Hormat kami,
 {nama_mempelai_pria} & {nama_mempelai_wanita}`,
-  en: `Dear Mr./Mrs./Ms.
+  en: `Dear
 *{nama_tamu}*
-Present
 ——————————————
 With joy, we invite you to attend our wedding:
 ✨ {nama_mempelai_pria} & {nama_mempelai_wanita} ✨
@@ -152,6 +151,9 @@ export default function GuestListPage() {
     Partial<Record<"id" | "en", WeddingData>>
   >({});
 
+  const formatGuestName = (guest: GuestListItem) =>
+    `${guest.title ? `${guest.title} ` : ""}${guest.name}`;
+
   const showNotification = (type: "success" | "error", message: string) => {
     setNotification({ type, message });
     setTimeout(() => setNotification(null), 3000);
@@ -216,7 +218,7 @@ export default function GuestListPage() {
     }
     const success = await copyToClipboard(text);
     if (success) {
-      showNotification("success", `Copied message for ${guest.name}`);
+      showNotification("success", `Copied message for ${formatGuestName(guest)}`);
     } else {
       showNotification("error", "Failed to copy message");
     }
@@ -558,7 +560,7 @@ export default function GuestListPage() {
                     >
                       <td className="p-3">
                         <div className="font-medium text-foreground">
-                          {guest.title ? `${guest.title} ` : ""}{guest.name}
+                          {formatGuestName(guest)}
                         </div>
                         <div className="text-xs text-muted-foreground">/{guest.slug}</div>
                       </td>
@@ -614,7 +616,7 @@ export default function GuestListPage() {
                             size="sm"
                             onClick={(e) => {
                               e.stopPropagation();
-                              handleDeleteSingle(guest.id, guest.name);
+                              handleDeleteSingle(guest.id, formatGuestName(guest));
                             }}
                             className="h-8 w-8 p-0 text-red-500 hover:text-red-700 hover:bg-red-50"
                             title="Delete"

@@ -163,38 +163,6 @@ export default function GuestListNewPage() {
                     <option value="en">EN</option>
                   </select>
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="invited">Invitation Sent</Label>
-                  <select
-                    id="invited"
-                    name="invited"
-                    className="w-full border rounded px-2 py-2"
-                    value={formData.invited ? "true" : "false"}
-                    onChange={(e) =>
-                      setFormData((prev) => ({
-                        ...prev,
-                        invited: e.target.value === "true",
-                      }))
-                    }
-                  >
-                    <option value="true">Sent</option>
-                    <option value="false">Not Sent</option>
-                  </select>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="rsvpStatus">Attendance</Label>
-                  <select
-                    id="rsvpStatus"
-                    name="rsvpStatus"
-                    className="w-full border rounded px-2 py-2"
-                    value={formData.rsvpStatus}
-                    onChange={handleChange}
-                  >
-                    <option value="not_responded">Not Responded</option>
-                    <option value="attending">Attending</option>
-                    <option value="not_attending">Not Attending</option>
-                  </select>
-                </div>
                 {error && (
                   <p className="text-red-500 text-sm md:col-span-2">{error}</p>
                 )}

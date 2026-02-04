@@ -10,7 +10,7 @@ export function formatDate(date: string | Date, locale: string = "id-ID"): strin
   return d.toLocaleDateString(locale, {
     weekday: "long",
     year: "numeric",
-    month: "long",
+    month: "short",
     day: "numeric",
   });
 }
@@ -28,7 +28,7 @@ export function formatDateTime(date: string | Date, locale: string = "id-ID"): s
   return d.toLocaleDateString(locale, {
     weekday: "long",
     year: "numeric",
-    month: "long",
+    month: "short",
     day: "numeric",
     hour: "2-digit",
     minute: "2-digit",

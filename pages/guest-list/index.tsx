@@ -43,15 +43,15 @@ const messageTemplates = {
 *{nama_tamu}*
 Di tempat
 ——————————————
-Dengan sukacita, kami mengundang Bapak/Ibu/Saudara/i untuk hadir pada acara:
-✨Pernikahan✨
-*{nama_mempelai_pria} & {nama_mempelai_wanita}*
+Dengan sukacita, kami mengundang Bapak/Ibu/Saudara/i untuk hadir pada acara pernikahan:
 
-*Pemberkatan Nikah*
+✨*{nama_mempelai_pria} & {nama_mempelai_wanita}*✨
+
+Pemberkatan Nikah
 🗓️ {tanggal_pemberkatan}
 🕛 {waktu_pemberkatan}
 📍 {lokasi_pemberkatan}
-
+——————————————
 Resepsi Pernikahan
 🗓️ {tanggal_resepsi}
 🕛 {waktu_resepsi}
@@ -60,14 +60,12 @@ Resepsi Pernikahan
 Undangan digital dapat diakses melalui:
 {tautan_undangan}
 
-Merupakan kehormatan bagi kami apabila Bapak/Ibu/Saudara/i berkenan hadir dan memberikan doa restu. 🙏
-
-Hormat kami,
-{nama_mempelai_pria} & {nama_mempelai_wanita}`,
-  en: `Dear
+Merupakan kehormatan bagi kami apabila Bapak/Ibu/Saudara/i berkenan hadir dan memberikan doa restu. 🙏`,
+  en: `Dear,
 *{nama_tamu}*
 ——————————————
 With joy, we invite you to attend our wedding:
+
 ✨ {nama_mempelai_pria} & {nama_mempelai_wanita} ✨
 
 Wedding Ceremony
@@ -83,10 +81,7 @@ Wedding Reception
 The digital invitation can be accessed via:
 {tautan_undangan}
 
-It would be our honor if you could attend and give your blessing. 🙏
-
-Sincerely,
-{nama_mempelai_pria} & {nama_mempelai_wanita}`,
+It would be our honor if you could attend and give your blessing. 🙏`,
 };
 
 function getSiteUrl(): string {

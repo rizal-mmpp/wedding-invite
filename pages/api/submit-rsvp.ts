@@ -1,5 +1,11 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { createRSVPGuest, getAllRSVPGuests, deleteRSVPGuest, deleteAllRSVPGuests, RSVPGuestRow } from "@/lib/db";
+import {
+  createRSVPGuest,
+  getAllRSVPGuests,
+  deleteRSVPGuest,
+  deleteAllRSVPGuests,
+  RSVPGuestRow,
+} from "@/lib/supabase";
 import type { APIResponse } from "@/types/wedding";
 
 interface RSVPResponse {
@@ -26,14 +32,14 @@ function formatGuestResponse(guest: RSVPGuestRow): RSVPResponse {
   };
 }
 
-export default function handler(
+export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<APIResponse<RSVPResponse | RSVPResponse[] | { deleted: number }>>
 ) {
   try {
     if (req.method === "GET") {
       // Get all RSVP responses
-      const guests = getAllRSVPGuests();
+      const guests = await getAllRSVPGuests();
       res.status(200).json({
         success: true,
         data: guests.map(formatGuestResponse),
@@ -56,7 +62,7 @@ export default function handler(
         });
       }
 
-      const newGuest = createRSVPGuest({
+      const newGuest = await createRSVPGuest({
         name,
         email,
         phone,
@@ -75,7 +81,7 @@ export default function handler(
       const { id, deleteAll } = req.query;
 
       if (deleteAll === "true") {
-        const deletedCount = deleteAllRSVPGuests();
+        const deletedCount = await deleteAllRSVPGuests();
         return res.status(200).json({
           success: true,
           data: { deleted: deletedCount },
@@ -90,7 +96,7 @@ export default function handler(
         });
       }
 
-      const deleted = deleteRSVPGuest(parseInt(id, 10));
+      const deleted = await deleteRSVPGuest(parseInt(id, 10));
       if (deleted) {
         res.status(200).json({
           success: true,

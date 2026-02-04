@@ -44,9 +44,10 @@ const messageTemplates = {
 Di tempat
 ——————————————
 Dengan sukacita, kami mengundang Bapak/Ibu/Saudara/i untuk hadir pada acara:
-✨ Pernikahan {nama_mempelai_pria} & {nama_mempelai_wanita} ✨
+✨Pernikahan✨
+*{nama_mempelai_pria} & {nama_mempelai_wanita}*
 
-Pemberkatan Nikah
+*Pemberkatan Nikah*
 🗓️ {tanggal_pemberkatan}
 🕛 {waktu_pemberkatan}
 📍 {lokasi_pemberkatan}
@@ -106,8 +107,8 @@ function buildMessage(
   const namaTamu = `${guest.title ? `${guest.title} ` : ""}${guest.name}`;
   const values: Record<string, string> = {
     nama_tamu: namaTamu,
-    nama_mempelai_pria: weddingData.couple.groom.fullName,
-    nama_mempelai_wanita: weddingData.couple.bride.fullName,
+    nama_mempelai_pria: weddingData.couple.groom.name,
+    nama_mempelai_wanita: weddingData.couple.bride.name,
     tanggal_pemberkatan: blessingEvent
       ? formatDate(blessingEvent.date, locale)
       : "",

@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { getGuestBySlug, updateGuest } from "@/lib/db";
+import { getGuestBySlug, updateGuest } from "@/lib/supabase";
 import type { APIResponse } from "@/types/wedding";
 
 interface GuestDetailResponse {
@@ -19,7 +19,7 @@ interface GuestDetailResponse {
   updatedAt: string;
 }
 
-function formatGuest(row: ReturnType<typeof getGuestBySlug>): GuestDetailResponse {
+function formatGuest(row: Awaited<ReturnType<typeof getGuestBySlug>>): GuestDetailResponse {
   if (!row) {
     throw new Error("Guest not found");
   }
@@ -29,10 +29,10 @@ function formatGuest(row: ReturnType<typeof getGuestBySlug>): GuestDetailRespons
     title: row.title || undefined,
     whatsapp: row.whatsapp,
     slug: row.slug,
-    invited: row.invited === 1,
+    invited: row.invited,
     rsvpStatus: row.rsvp_status,
     rsvpMessage: row.rsvp_message || undefined,
-    messageSent: row.message_sent === 1,
+    messageSent: row.message_sent,
     messageSentAt: row.message_sent_at || undefined,
     country: row.country,
     language: row.language,
@@ -41,7 +41,7 @@ function formatGuest(row: ReturnType<typeof getGuestBySlug>): GuestDetailRespons
   };
 }
 
-export default function handler(
+export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<APIResponse<GuestDetailResponse>>
 ) {
@@ -52,7 +52,7 @@ export default function handler(
     }
 
     if (req.method === "GET") {
-      const guest = getGuestBySlug(slug);
+      const guest = await getGuestBySlug(slug);
       if (!guest) {
         return res.status(404).json({ success: false, error: "Guest not found" });
       }
@@ -72,12 +72,12 @@ export default function handler(
         });
       }
 
-      const existing = getGuestBySlug(slug);
+      const existing = await getGuestBySlug(slug);
       if (!existing) {
         return res.status(404).json({ success: false, error: "Guest not found" });
       }
 
-      const updated = updateGuest(existing.id, {
+      const updated = await updateGuest(existing.id, {
         rsvpStatus: attendance,
         rsvpMessage: message ?? null,
       });

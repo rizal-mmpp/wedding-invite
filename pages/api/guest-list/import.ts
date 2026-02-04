@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { createGuest, getGuestBySlug } from "@/lib/db";
+import { createGuest, getGuestBySlug } from "@/lib/supabase";
 import type { APIResponse } from "@/types/wedding";
 
 interface ImportResult {
@@ -73,17 +73,17 @@ function normalizeWhatsApp(value: string, country: GuestCountry): string {
   return digits;
 }
 
-function getUniqueSlug(base: string): string {
+async function getUniqueSlug(base: string): Promise<string> {
   let candidate = base;
   let counter = 1;
-  while (getGuestBySlug(candidate)) {
+  while (await getGuestBySlug(candidate)) {
     counter += 1;
     candidate = `${base}-${counter}`;
   }
   return candidate;
 }
 
-export default function handler(
+export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<APIResponse<ImportResult>>
 ) {
@@ -100,14 +100,14 @@ export default function handler(
     const rows = parseCSV(csv);
     const result: ImportResult = { imported: 0, skipped: 0, errors: [] };
 
-    rows.forEach((row, index) => {
+    for (const [index, row] of rows.entries()) {
       const name = row.name?.trim();
       const whatsapp = row.whatsapp?.trim();
 
       if (!name || !whatsapp) {
         result.skipped += 1;
         result.errors.push(`Row ${index + 2}: missing name or whatsapp`);
-        return;
+        continue;
       }
 
       const country: GuestCountry =
@@ -120,7 +120,7 @@ export default function handler(
       if (!normalizedWhatsApp) {
         result.skipped += 1;
         result.errors.push(`Row ${index + 2}: invalid whatsapp`);
-        return;
+        continue;
       }
 
       const title = row.title?.trim() || undefined;
@@ -138,9 +138,9 @@ export default function handler(
           : "en";
 
       const slugBase = slugify(name);
-      const slug = getUniqueSlug(slugBase);
+      const slug = await getUniqueSlug(slugBase);
 
-      createGuest({
+      await createGuest({
         name,
         title,
         whatsapp: normalizedWhatsApp,
@@ -151,7 +151,7 @@ export default function handler(
         language,
       });
       result.imported += 1;
-    });
+    }
 
     return res.status(200).json({ success: true, data: result });
   } catch (error) {

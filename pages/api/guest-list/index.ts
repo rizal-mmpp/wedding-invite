@@ -6,7 +6,7 @@ import {
   getGuestBySlug,
   updateGuest,
   GuestListRow,
-} from "@/lib/db";
+} from "@/lib/supabase";
 import type { APIResponse } from "@/types/wedding";
 
 interface GuestResponse {
@@ -33,10 +33,10 @@ function formatGuest(row: GuestListRow): GuestResponse {
     title: row.title || undefined,
     whatsapp: row.whatsapp,
     slug: row.slug,
-    invited: row.invited === 1,
+    invited: row.invited,
     rsvpStatus: row.rsvp_status,
     rsvpMessage: row.rsvp_message || undefined,
-    messageSent: row.message_sent === 1,
+    messageSent: row.message_sent,
     messageSentAt: row.message_sent_at || undefined,
     country: row.country,
     language: row.language,
@@ -86,10 +86,10 @@ function normalizeWhatsApp(value: string, country: GuestCountry): string {
   return digits;
 }
 
-function getUniqueSlug(base: string): string {
+async function getUniqueSlug(base: string): Promise<string> {
   let candidate = base;
   let counter = 1;
-  while (getGuestBySlug(candidate)) {
+  while (await getGuestBySlug(candidate)) {
     counter += 1;
     candidate = `${base}-${counter}`;
   }
@@ -100,14 +100,14 @@ function getLanguageForCountry(country: GuestCountry): "id" | "en" {
   return country === "Indonesia" ? "id" : "en";
 }
 
-export default function handler(
+export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<APIResponse<GuestResponse | GuestResponse[]>>
 ) {
   try {
     if (req.method === "GET") {
       const { invited, messageSent, rsvpStatus } = req.query;
-      const guests = getAllGuests({
+      const guests = await getAllGuests({
         invited: invited === undefined ? undefined : invited === "true",
         messageSent: messageSent === undefined ? undefined : messageSent === "true",
         rsvpStatus:
@@ -148,11 +148,11 @@ export default function handler(
       }
 
       const slugBase = slugify(name);
-      const guest = createGuest({
+      const guest = await createGuest({
         name,
         title,
         whatsapp: normalizedWhatsApp,
-        slug: getUniqueSlug(slugBase),
+        slug: await getUniqueSlug(slugBase),
         invited: Boolean(invited),
         rsvpStatus:
           rsvpStatus === "attending" || rsvpStatus === "not_attending"
@@ -189,7 +189,9 @@ export default function handler(
         country,
       } = req.body;
 
-      const existing = getAllGuests().find((guest) => guest.id === parseInt(id, 10));
+      const existing = (await getAllGuests()).find(
+        (guest) => guest.id === parseInt(id, 10)
+      );
       const resolvedCountry: GuestCountry =
         country === "Singapore" ||
         country === "United States" ||
@@ -199,7 +201,7 @@ export default function handler(
           ? "Indonesia"
           : existing?.country || "Indonesia";
 
-      const updated = updateGuest(parseInt(id, 10), {
+      const updated = await updateGuest(parseInt(id, 10), {
         name,
         title,
         whatsapp:
@@ -248,7 +250,7 @@ export default function handler(
         });
       }
 
-      const deleted = deleteGuest(parseInt(id, 10));
+      const deleted = await deleteGuest(parseInt(id, 10));
       if (!deleted) {
         return res.status(404).json({
           success: false,

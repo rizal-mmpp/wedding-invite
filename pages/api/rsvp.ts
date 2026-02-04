@@ -1,49 +1,26 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import type { RSVPGuest, APIResponse } from "@/types/wedding";
+import { createRSVPGuest, getAllRSVPGuests } from "@/lib/supabase";
 
-// In-memory storage for demo purposes
-// In production, this would be a database
-let rsvpGuests: RSVPGuest[] = [
-  {
-    id: "1",
-    name: "Ahmad Fauzi",
-    email: "ahmad@example.com",
-    phone: "081234567891",
-    attendance: "attending",
-    numberOfGuests: 2,
-    message: "Selamat menempuh hidup baru! Semoga menjadi keluarga sakinah mawaddah warahmah.",
-    createdAt: "2024-05-01T10:00:00.000Z",
-  },
-  {
-    id: "2",
-    name: "Siti Nurhaliza",
-    email: "siti@example.com",
-    phone: "081234567892",
-    attendance: "attending",
-    numberOfGuests: 1,
-    message: "Bahagia selalu untuk kalian berdua!",
-    createdAt: "2024-05-02T14:30:00.000Z",
-  },
-  {
-    id: "3",
-    name: "Budi Santoso",
-    email: "budi@example.com",
-    attendance: "not_attending",
-    numberOfGuests: 0,
-    message: "Mohon maaf tidak bisa hadir, semoga lancar acaranya!",
-    createdAt: "2024-05-03T09:15:00.000Z",
-  },
-];
-
-export default function handler(
+export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<APIResponse<RSVPGuest | RSVPGuest[]>>
 ) {
   if (req.method === "GET") {
     // Get all RSVP responses
+    const guests = await getAllRSVPGuests();
     res.status(200).json({
       success: true,
-      data: rsvpGuests,
+      data: guests.map((guest) => ({
+        id: String(guest.id),
+        name: guest.name,
+        email: guest.email || undefined,
+        phone: guest.phone || undefined,
+        attendance: guest.attendance,
+        numberOfGuests: guest.number_of_guests,
+        message: guest.message || undefined,
+        createdAt: guest.created_at,
+      })),
     });
   } else if (req.method === "POST") {
     // Create new RSVP
@@ -56,22 +33,34 @@ export default function handler(
       });
     }
 
-    const newGuest: RSVPGuest = {
-      id: String(Date.now()),
+    if (!["attending", "not_attending", "pending"].includes(attendance)) {
+      return res.status(400).json({
+        success: false,
+        error: "Invalid attendance status",
+      });
+    }
+
+    const newGuest = await createRSVPGuest({
       name,
       email,
       phone,
       attendance,
       numberOfGuests: numberOfGuests || 1,
       message,
-      createdAt: new Date().toISOString(),
-    };
-
-    rsvpGuests.push(newGuest);
+    });
 
     res.status(201).json({
       success: true,
-      data: newGuest,
+      data: {
+        id: String(newGuest.id),
+        name: newGuest.name,
+        email: newGuest.email || undefined,
+        phone: newGuest.phone || undefined,
+        attendance: newGuest.attendance,
+        numberOfGuests: newGuest.number_of_guests,
+        message: newGuest.message || undefined,
+        createdAt: newGuest.created_at,
+      },
       message: "RSVP submitted successfully",
     });
   } else {

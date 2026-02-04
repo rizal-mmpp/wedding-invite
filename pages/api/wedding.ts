@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { getGuestBySlug } from "@/lib/db";
+import { getGuestBySlug } from "@/lib/supabase";
 import type { WeddingData, APIResponse } from "@/types/wedding";
 
 export const dummyWeddingDataId: WeddingData = {
@@ -216,7 +216,7 @@ export const dummyWeddingDataEn: WeddingData = {
   ],
 };
 
-export default function handler(
+export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<APIResponse<WeddingData>>
 ) {
@@ -226,7 +226,7 @@ export default function handler(
       : req.query.slug;
     let langFromGuest: "id" | "en" | undefined;
     if (slugParam && typeof slugParam === "string") {
-      const guest = getGuestBySlug(slugParam);
+      const guest = await getGuestBySlug(slugParam);
       if (!guest) {
         return res.status(404).json({
           success: false,

@@ -535,7 +535,7 @@ export default function GuestListPage() {
               </Button>
             </CardContent>
 
-            <div className="flex flex-wrap gap-3 items-end">
+            <div className="flex flex-wrap gap-3 items-end justify-end">
               <div className="flex flex-col">
                 <div className="mt-1 flex items-center gap-2 rounded-full border border-wedding-gold/30 bg-white px-3 py-1.5 shadow-sm focus-within:border-wedding-gold/60 focus-within:ring-2 focus-within:ring-wedding-gold/20">
                   <svg

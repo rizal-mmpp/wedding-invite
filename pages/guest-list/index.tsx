@@ -517,28 +517,23 @@ export default function GuestListPage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className="grid gap-4 mb-8"
+            className="grid gap-4 my-4"
           >
-            <Card className="border-wedding-gold/20">
-              <CardHeader>
-                <CardTitle>Guest Actions</CardTitle>
-              </CardHeader>
-              <CardContent className="flex flex-wrap gap-3">
-                <Button asChild variant="outline">
-                  <a href="/guest-list/new">Add New Guest</a>
-                </Button>
-                <Button asChild variant="outline">
-                  <a href="/guest-list/import">Import Guests</a>
-                </Button>
-                <Button variant="outline" onClick={handleExportData}>
-                  <Download className="w-4 h-4 mr-2" />
-                  Export Data
-                </Button>
-                <Button asChild variant="outline">
-                  <a href="/guest-list/messages">View Messages</a>
-                </Button>
-              </CardContent>
-            </Card>
+            <CardContent className="flex flex-wrap gap-3 justify-end p-0 m-0">
+              <Button asChild>
+                <a href="/guest-list/new">Add New Guest</a>
+              </Button>
+              <Button asChild variant="outline">
+                <a href="/guest-list/messages">View Messages</a>
+              </Button>
+              <Button asChild variant="outline">
+                <a href="/guest-list/import">Import</a>
+              </Button>
+              <Button variant="outline" onClick={handleExportData}>
+                <Download className="w-4 h-4 mr-2" />
+                Export
+              </Button>
+            </CardContent>
 
             <div className="flex flex-wrap gap-3 items-end">
               <div className="flex flex-col">

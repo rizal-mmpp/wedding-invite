@@ -115,10 +115,22 @@ export default function GuestDetailPage() {
             animate={{ opacity: 1, y: 0 }}
             className="text-center mb-8"
           >
-            <h1 className="font-script text-4xl text-foreground mb-2">
-              Guest Details
-            </h1>
-            <Separator className="w-24 mx-auto bg-wedding-gold h-0.5" />
+            <div className="flex flex-col items-center gap-4">
+              <div>
+                <h1 className="font-script text-4xl text-foreground mb-2">
+                  Guest Details
+                </h1>
+                <Separator className="w-24 mx-auto bg-wedding-gold h-0.5" />
+              </div>
+              <div className="flex flex-wrap items-center justify-center gap-3">
+                <Button asChild variant="outline">
+                  <a href="/guest-list">Back to List</a>
+                </Button>
+                <Button asChild>
+                  <a href="/guest-list/new">Add New Guest</a>
+                </Button>
+              </div>
+            </div>
           </motion.div>
 
           {loading ? (
@@ -264,9 +276,6 @@ export default function GuestDetailPage() {
                     <div className="md:col-span-2 flex gap-3">
                       <Button type="submit" variant="outline" disabled={isSaving}>
                         {isSaving ? "Saving..." : "Save Changes"}
-                      </Button>
-                      <Button type="button" variant="ghost" onClick={() => router.push("/guest-list")}>
-                        Back to Guest List
                       </Button>
                     </div>
                   </form>

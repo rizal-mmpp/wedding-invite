@@ -146,6 +146,45 @@ export async function getAllGuests(filters?: {
   return data ?? [];
 }
 
+export async function getGuestsPaged(filters?: {
+  invited?: boolean;
+  messageSent?: boolean;
+  rsvpStatus?: "attending" | "not_attending" | "not_responded";
+  search?: string;
+  page?: number;
+  pageSize?: number;
+}): Promise<{ data: GuestListRow[]; total: number }> {
+  const supabase = getSupabaseClient();
+  let query = supabase
+    .from("guest_list")
+    .select("*", { count: "exact" })
+    .order("created_at", {
+      ascending: false,
+    });
+
+  if (typeof filters?.invited === "boolean") {
+    query = query.eq("invited", filters.invited);
+  }
+  if (typeof filters?.messageSent === "boolean") {
+    query = query.eq("message_sent", filters.messageSent);
+  }
+  if (filters?.rsvpStatus) {
+    query = query.eq("rsvp_status", filters.rsvpStatus);
+  }
+  if (filters?.search) {
+    query = query.ilike("name", `%${filters.search}%`);
+  }
+
+  const page = Math.max(1, filters?.page ?? 1);
+  const pageSize = Math.max(1, filters?.pageSize ?? 20);
+  const from = (page - 1) * pageSize;
+  const to = from + pageSize - 1;
+
+  const { data, error, count } = await query.range(from, to);
+  if (error) throw error;
+  return { data: data ?? [], total: count ?? 0 };
+}
+
 export async function getGuestById(id: number): Promise<GuestListRow | undefined> {
   const supabase = getSupabaseClient();
   const { data, error } = await supabase
@@ -256,6 +295,38 @@ export async function updateGuest(
     throw error;
   }
   return data ?? undefined;
+}
+
+export async function updateGuestsMessageSent(
+  ids: number[],
+  messageSent: boolean,
+  messageSentAt?: string | null
+): Promise<GuestListRow[]> {
+  if (!ids.length) return [];
+  const supabase = getSupabaseClient();
+  const { data, error } = await supabase
+    .from("guest_list")
+    .update({
+      message_sent: messageSent,
+      message_sent_at: messageSentAt ?? null,
+      updated_at: new Date().toISOString(),
+    })
+    .in("id", ids)
+    .select("*");
+  if (error) throw error;
+  return data ?? [];
+}
+
+export async function deleteGuests(ids: number[]): Promise<number> {
+  if (!ids.length) return 0;
+  const supabase = getSupabaseClient();
+  const { data, error } = await supabase
+    .from("guest_list")
+    .delete()
+    .in("id", ids)
+    .select("id");
+  if (error) throw error;
+  return data?.length ?? 0;
 }
 
 export async function deleteGuest(id: number): Promise<boolean> {

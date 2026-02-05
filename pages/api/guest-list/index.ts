@@ -2,9 +2,12 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import {
   createGuest,
   deleteGuest,
+  deleteGuests,
   getAllGuests,
   getGuestBySlug,
+  getGuestsPaged,
   updateGuest,
+  updateGuestsMessageSent,
   GuestListRow,
 } from "@/lib/supabase";
 import type { APIResponse } from "@/types/wedding";
@@ -25,6 +28,13 @@ interface GuestResponse {
   language: "id" | "en";
   createdAt: string;
   updatedAt: string;
+}
+
+interface GuestListResponse {
+  items: GuestResponse[];
+  page: number;
+  pageSize: number;
+  total: number;
 }
 
 function formatGuest(row: GuestListRow): GuestResponse {
@@ -104,12 +114,24 @@ function getLanguageForCountry(country: GuestCountry): "id" | "en" {
 
 export default async function handler(
   req: NextApiRequest,
-  res: NextApiResponse<APIResponse<GuestResponse | GuestResponse[]>>
+  res: NextApiResponse<
+    APIResponse<GuestResponse | GuestResponse[] | GuestListResponse | number>
+  >
 ) {
   try {
     if (req.method === "GET") {
-      const { invited, messageSent, rsvpStatus } = req.query;
-      const guests = await getAllGuests({
+      const { invited, messageSent, rsvpStatus, search, page, pageSize } = req.query;
+      const resolvedPage = Array.isArray(page) ? page[0] : page;
+      const resolvedPageSize = Array.isArray(pageSize) ? pageSize[0] : pageSize;
+      const pageNumber = resolvedPage ? Number.parseInt(resolvedPage, 10) : 1;
+      const sizeNumber = resolvedPageSize ? Number.parseInt(resolvedPageSize, 10) : 20;
+      const safePage = Number.isFinite(pageNumber) && pageNumber > 0 ? pageNumber : 1;
+      const safePageSize = Number.isFinite(sizeNumber) && sizeNumber > 0 ? sizeNumber : 20;
+      const allowedSizes = new Set([20, 50, 100, 500, 1000]);
+      const finalPageSize = allowedSizes.has(safePageSize) ? safePageSize : 20;
+      const searchValue = Array.isArray(search) ? search[0] : search;
+
+      const { data, total } = await getGuestsPaged({
         invited: invited === undefined ? undefined : invited === "true",
         messageSent: messageSent === undefined ? undefined : messageSent === "true",
         rsvpStatus:
@@ -118,10 +140,21 @@ export default async function handler(
           rsvpStatus === "not_responded"
             ? rsvpStatus
             : undefined,
+        search: typeof searchValue === "string" && searchValue.trim() ? searchValue.trim() : undefined,
+        page: safePage,
+        pageSize: finalPageSize,
       });
+
+      const response: GuestListResponse = {
+        items: data.map(formatGuest),
+        page: safePage,
+        pageSize: finalPageSize,
+        total,
+      };
+
       return res.status(200).json({
         success: true,
-        data: guests.map(formatGuest),
+        data: response,
       });
     }
 
@@ -183,9 +216,44 @@ export default async function handler(
     if (req.method === "PATCH") {
       const { id } = req.query;
       if (!id || typeof id !== "string") {
-        return res.status(400).json({
-          success: false,
-          error: "Guest id is required",
+        const { ids, messageSent, messageSentAt } = req.body as {
+          ids?: string[];
+          messageSent?: boolean;
+          messageSentAt?: string | null;
+        };
+
+        if (!Array.isArray(ids) || ids.length === 0) {
+          return res.status(400).json({
+            success: false,
+            error: "Guest id is required",
+          });
+        }
+        if (typeof messageSent !== "boolean") {
+          return res.status(400).json({
+            success: false,
+            error: "messageSent is required",
+          });
+        }
+
+        const numericIds = ids
+          .map((value) => Number.parseInt(value, 10))
+          .filter((value) => Number.isFinite(value));
+        if (!numericIds.length) {
+          return res.status(400).json({
+            success: false,
+            error: "Invalid guest ids",
+          });
+        }
+
+        const updated = await updateGuestsMessageSent(
+          numericIds,
+          messageSent,
+          messageSentAt ?? (messageSent ? new Date().toISOString() : null)
+        );
+
+        return res.status(200).json({
+          success: true,
+          data: updated.map(formatGuest),
         });
       }
 
@@ -258,9 +326,28 @@ export default async function handler(
     if (req.method === "DELETE") {
       const { id } = req.query;
       if (!id || typeof id !== "string") {
-        return res.status(400).json({
-          success: false,
-          error: "Guest id is required",
+        const { ids } = req.body as { ids?: string[] };
+        if (!Array.isArray(ids) || ids.length === 0) {
+          return res.status(400).json({
+            success: false,
+            error: "Guest id is required",
+          });
+        }
+
+        const numericIds = ids
+          .map((value) => Number.parseInt(value, 10))
+          .filter((value) => Number.isFinite(value));
+        if (!numericIds.length) {
+          return res.status(400).json({
+            success: false,
+            error: "Invalid guest ids",
+          });
+        }
+
+        const deletedCount = await deleteGuests(numericIds);
+        return res.status(200).json({
+          success: true,
+          data: deletedCount,
         });
       }
 

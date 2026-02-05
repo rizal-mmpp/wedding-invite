@@ -180,7 +180,7 @@ export default function GuestDetailPage() {
                         required
                       />
                     </div>
-                    <div className="space-y-2">
+                    {/* <div className="space-y-2">
                       <Label htmlFor="invited">Invitation Sent</Label>
                       <select
                         id="invited"
@@ -197,9 +197,9 @@ export default function GuestDetailPage() {
                         <option value="true">Sent</option>
                         <option value="false">Not Sent</option>
                       </select>
-                    </div>
+                    </div> */}
                     <div className="space-y-2">
-                      <Label htmlFor="isGroup">Invitation Type</Label>
+                      <Label htmlFor="isGroup">Tipe Undangan</Label>
                       <select
                         id="isGroup"
                         name="isGroup"

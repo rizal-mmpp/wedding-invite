@@ -143,6 +143,11 @@ export default function GuestListPage() {
     messageSent: "all",
     rsvpStatus: "all",
   });
+  const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(20);
+  const [total, setTotal] = useState(0);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [weddingDataByLang, setWeddingDataByLang] = useState<
     Partial<Record<"id" | "en", WeddingData>>
   >({});
@@ -165,11 +170,24 @@ export default function GuestListPage() {
         query.set("messageSent", filters.messageSent);
       if (filters.rsvpStatus !== "all")
         query.set("rsvpStatus", filters.rsvpStatus);
+      if (search.trim()) query.set("search", search.trim());
+      query.set("page", String(page));
+      query.set("pageSize", String(pageSize));
 
       const response = await fetch(`/api/guest-list?${query.toString()}`);
       const result = await response.json();
       if (result.success) {
-        setGuests(result.data || []);
+        const payload = result.data;
+        if (payload?.items) {
+          setGuests(payload.items || []);
+          setTotal(payload.total || 0);
+          setPage(payload.page || page);
+          setPageSize(payload.pageSize || pageSize);
+        } else {
+          setGuests(payload || []);
+          setTotal(Array.isArray(payload) ? payload.length : 0);
+        }
+        setSelectedIds([]);
       } else {
         setError(result.error || "Failed to fetch guest list");
       }
@@ -182,7 +200,14 @@ export default function GuestListPage() {
 
   useEffect(() => {
     fetchGuests();
-  }, [filters.invited, filters.messageSent, filters.rsvpStatus]);
+  }, [
+    filters.invited,
+    filters.messageSent,
+    filters.rsvpStatus,
+    search,
+    page,
+    pageSize,
+  ]);
 
   useEffect(() => {
     const loadWeddingData = async () => {
@@ -230,7 +255,7 @@ export default function GuestListPage() {
     url.searchParams.set("phone", guest.whatsapp);
     url.searchParams.set("text", text);
     window.open(url.toString(), "_blank");
-    await updateMessageSent(guest.id, true);
+    // await updateMessageSent(guest.id, true);
   };
 
   const updateMessageSent = async (id: string, sent: boolean) => {
@@ -253,6 +278,60 @@ export default function GuestListPage() {
       }
     } catch (err) {
       showNotification("error", "Failed to update status");
+    }
+  };
+
+  const handleBulkUpdateMessageSent = async (sent: boolean) => {
+    if (!selectedIds.length) return;
+    try {
+      const response = await fetch(`/api/guest-list`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ids: selectedIds,
+          messageSent: sent,
+          messageSentAt: sent ? new Date().toISOString() : null,
+        }),
+      });
+      const result = await response.json();
+      if (result.success) {
+        const updatedList = (result.data ?? []) as GuestListItem[];
+        const updatedMap = new Map<string, GuestListItem>(
+          updatedList.map((guest) => [guest.id, guest])
+        );
+        setGuests((prev) => prev.map((g) => updatedMap.get(g.id) ?? g));
+        setSelectedIds([]);
+        showNotification(
+          "success",
+          sent ? "Marked selected guests as sent" : "Marked selected guests as not sent"
+        );
+      } else {
+        showNotification("error", result.error || "Failed to update guests");
+      }
+    } catch (err) {
+      showNotification("error", "Failed to update guests");
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    if (!selectedIds.length) return;
+    if (!confirm(`Delete ${selectedIds.length} selected guests?`)) return;
+    try {
+      const response = await fetch(`/api/guest-list`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ids: selectedIds }),
+      });
+      const result = await response.json();
+      if (result.success) {
+        setGuests((prev) => prev.filter((g) => !selectedIds.includes(g.id)));
+        setSelectedIds([]);
+        showNotification("success", "Deleted selected guests");
+      } else {
+        showNotification("error", result.error || "Failed to delete guests");
+      }
+    } catch (err) {
+      showNotification("error", "Failed to delete guests");
     }
   };
 
@@ -344,6 +423,10 @@ export default function GuestListPage() {
     return { invited, messaged, attending, notResponded };
   }, [guests]);
 
+  const totalPages = Math.max(1, Math.ceil((total || 0) / pageSize));
+  const allSelected = guests.length > 0 && selectedIds.length === guests.length;
+  const someSelected = selectedIds.length > 0 && !allSelected;
+
   return (
     <>
       <Head>
@@ -396,7 +479,7 @@ export default function GuestListPage() {
               <CardContent className="p-4 text-center">
                 <Users className="w-8 h-8 mx-auto mb-2 text-wedding-gold" />
                 <p className="text-2xl font-bold text-foreground">
-                  {guests.length}
+                  {total}
                 </p>
                 <p className="text-sm text-muted-foreground">Total Guests</p>
               </CardContent>
@@ -458,19 +541,45 @@ export default function GuestListPage() {
             </Card>
 
             <div className="flex flex-wrap gap-3 items-end">
-              <div>
-                <Label>Is Invitation Sent</Label>
-                <select
-                  className="ml-2 border rounded px-2 py-1"
-                  value={filters.invited}
-                  onChange={(e) =>
-                    setFilters((prev) => ({ ...prev, invited: e.target.value }))
-                  }
-                >
-                  <option value="all">All</option>
-                  <option value="true">Sent</option>
-                  <option value="false">Not Sent</option>
-                </select>
+              <div className="flex flex-col">
+                <div className="mt-1 flex items-center gap-2 rounded-full border border-wedding-gold/30 bg-white px-3 py-1.5 shadow-sm focus-within:border-wedding-gold/60 focus-within:ring-2 focus-within:ring-wedding-gold/20">
+                  <svg
+                    className="h-4 w-4 text-muted-foreground"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    aria-hidden="true"
+                  >
+                    <circle cx="11" cy="11" r="8" />
+                    <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                  </svg>
+                  <input
+                    className="w-48 bg-transparent text-sm text-foreground placeholder:text-muted-foreground focus:outline-none"
+                    type="search"
+                    value={search}
+                    onChange={(e) => {
+                      setSearch(e.target.value);
+                      setPage(1);
+                    }}
+                    placeholder="Search by guest name"
+                  />
+                  {search && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSearch("");
+                        setPage(1);
+                      }}
+                      className="text-xs text-muted-foreground hover:text-foreground"
+                      aria-label="Clear search"
+                    >
+                      Clear
+                    </button>
+                  )}
+                </div>
               </div>
               <div>
                 <Label>Message Sent</Label>
@@ -501,9 +610,25 @@ export default function GuestListPage() {
                   <option value="not_responded">Not Responded</option>
                 </select>
               </div>
+              <div>
+                <Label>Page Size</Label>
+                <select
+                  className="ml-2 border rounded px-2 py-1"
+                  value={pageSize}
+                  onChange={(e) => {
+                    setPageSize(Number(e.target.value));
+                    setPage(1);
+                  }}
+                >
+                  {[20, 50, 100, 500, 1000].map((size) => (
+                    <option key={size} value={size}>
+                      {size}
+                    </option>
+                  ))}
+                </select>
+              </div>
               <Button variant="outline" onClick={fetchGuests}>
-                <RefreshCw className={`w-4 h-4 mr-2 ${loading ? "animate-spin" : ""}`} />
-                Refresh
+                <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
               </Button>
             </div>
           </motion.div>
@@ -535,14 +660,61 @@ export default function GuestListPage() {
               transition={{ delay: 0.3 }}
               className="overflow-x-auto"
             >
+              {selectedIds.length > 0 && (
+                <div className="mb-4 flex flex-wrap items-center gap-3 rounded-lg border border-wedding-gold/20 bg-wedding-cream/40 px-4 py-3">
+                  <span className="text-sm text-foreground">
+                    {selectedIds.length} selected
+                  </span>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleBulkUpdateMessageSent(true)}
+                  >
+                    Mark Sent
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleBulkUpdateMessageSent(false)}
+                  >
+                    Mark Not Sent
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleBulkDelete}
+                    className="text-red-600 hover:text-red-700"
+                  >
+                    <Trash2 className="w-4 h-4 mr-2" />
+                    Delete Selected
+                  </Button>
+                </div>
+              )}
               <table className="w-full border-collapse">
                 <thead>
                   <tr className="bg-wedding-gold/10">
+                    <th className="text-center p-3 font-semibold text-foreground">
+                      <input
+                        type="checkbox"
+                        checked={allSelected}
+                        ref={(input) => {
+                          if (input) input.indeterminate = someSelected;
+                        }}
+                        onChange={() => {
+                          if (allSelected) {
+                            setSelectedIds([]);
+                          } else {
+                            setSelectedIds(guests.map((guest) => guest.id));
+                          }
+                        }}
+                        className="h-4 w-4 rounded border-gray-300 text-wedding-gold focus:ring-wedding-gold"
+                        aria-label="Select all"
+                      />
+                    </th>
                     <th className="text-left p-3 font-semibold text-foreground">Name</th>
                     <th className="text-left p-3 font-semibold text-foreground">WhatsApp</th>
-                    <th className="text-center p-3 font-semibold text-foreground">Invitation Sent</th>
-                    <th className="text-center p-3 font-semibold text-foreground">Attendance</th>
-                    <th className="text-center p-3 font-semibold text-foreground">Sent</th>
+                    <th className="text-center p-3 font-semibold text-foreground">Kehadiran</th>
+                    <th className="text-center p-3 font-semibold text-foreground">Terkirim</th>
                     <th className="text-center p-3 font-semibold text-foreground">Actions</th>
                   </tr>
                 </thead>
@@ -556,6 +728,21 @@ export default function GuestListPage() {
                       className="border-b border-wedding-gold/10 hover:bg-wedding-gold/5 cursor-pointer"
                       onClick={() => (window.location.href = `/guest-list/${guest.slug}`)}
                     >
+                      <td className="p-3 text-center" onClick={(e) => e.stopPropagation()}>
+                        <input
+                          type="checkbox"
+                          checked={selectedIds.includes(guest.id)}
+                          onChange={() => {
+                            setSelectedIds((prev) =>
+                              prev.includes(guest.id)
+                                ? prev.filter((id) => id !== guest.id)
+                                : [...prev, guest.id]
+                            );
+                          }}
+                          className="h-4 w-4 rounded border-gray-300 text-wedding-gold focus:ring-wedding-gold"
+                          aria-label={`Select ${formatGuestName(guest)}`}
+                        />
+                      </td>
                       <td className="p-3">
                         <div className="font-medium text-foreground">
                           {formatGuestName(guest)}
@@ -563,12 +750,28 @@ export default function GuestListPage() {
                         <div className="text-xs text-muted-foreground">/{guest.slug}</div>
                       </td>
                       <td className="p-3">{guest.whatsapp}</td>
-                      <td className="p-3 text-center">
-                        {guest.invited ? "Yes" : "No"}
-                      </td>
                       <td className="p-3 text-center">{guest.rsvpStatus}</td>
-                      <td className="p-3 text-center">
-                        {guest.messageSent ? "Yes" : "No"}
+                      <td className="p-3 text-center" onClick={(e) => e.stopPropagation()}>
+                        <div className="flex flex-col items-center gap-2">
+                          <label className="relative inline-flex cursor-pointer items-center">
+                            <input
+                              type="checkbox"
+                              className="peer sr-only"
+                              checked={guest.messageSent}
+                              onChange={(e) => updateMessageSent(guest.id, e.target.checked)}
+                              aria-label={`Toggle message sent for ${formatGuestName(guest)}`}
+                            />
+                            <div className="h-6 w-11 rounded-full bg-gray-200 transition peer-checked:bg-wedding-gold" />
+                            <div className="absolute left-1 top-1 h-4 w-4 rounded-full bg-white transition peer-checked:translate-x-5" />
+                          </label>
+                          <span
+                            className={`text-xs font-medium ${
+                              guest.messageSent ? "text-green-700" : "text-muted-foreground"
+                            }`}
+                          >
+                            {guest.messageSent ? "Sudah" : "Belum"}
+                          </span>
+                        </div>
                       </td>
                       <td className="p-3">
                         <div className="flex items-center justify-center gap-1">
@@ -602,18 +805,6 @@ export default function GuestListPage() {
                             size="sm"
                             onClick={(e) => {
                               e.stopPropagation();
-                              updateMessageSent(guest.id, !guest.messageSent);
-                            }}
-                            className="h-8 w-8 p-0"
-                            title="Toggle Sent"
-                          >
-                            <CheckCircle className="w-4 h-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={(e) => {
-                              e.stopPropagation();
                               handleDeleteSingle(guest.id, formatGuestName(guest));
                             }}
                             className="h-8 w-8 p-0 text-red-500 hover:text-red-700 hover:bg-red-50"
@@ -628,6 +819,31 @@ export default function GuestListPage() {
                 </tbody>
               </table>
             </motion.div>
+          )}
+          {!loading && !error && guests.length > 0 && (
+            <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
+              <div className="text-sm text-muted-foreground">
+                Page {page} of {totalPages} ({total} total)
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={page <= 1}
+                  onClick={() => setPage((prev) => Math.max(1, prev - 1))}
+                >
+                  Previous
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={page >= totalPages}
+                  onClick={() => setPage((prev) => Math.min(totalPages, prev + 1))}
+                >
+                  Next
+                </Button>
+              </div>
+            </div>
           )}
         </div>
       </div>

@@ -68,9 +68,14 @@ export default function InvitationCover({
           <p className="text-white/80 text-sm mb-2">
             {isEn ? "Mr./Mrs./Family" : "Bapak/Ibu/ Saudara/i"}
           </p>
-          <h2 className="font-script text-2xl md:text-3xl text-white mb-6">
+          <h2 className="font-script text-2xl md:text-3xl text-white mb-3">
             {guestName}
           </h2>
+          <p className="text-white/80 text-xs md:text-sm mb-6">
+            {isEn
+              ? "We apologize if the name listed is incorrect."
+              : "Mohon maaf apabila nama yang tertera kurang tepat."}
+          </p>
 
           <button
             onClick={handleOpenInvitation}

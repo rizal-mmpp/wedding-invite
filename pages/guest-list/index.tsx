@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
+import debounce from "debounce";
 import Head from "next/head";
 import { motion } from "framer-motion";
 import {
@@ -143,11 +144,28 @@ export default function GuestListPage() {
     messageSent: "all",
     rsvpStatus: "all",
   });
+  const [searchInput, setSearchInput] = useState("");
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
   const [total, setTotal] = useState(0);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
+
+  const debouncedSearch = useMemo(
+    () =>
+      debounce((value: string) => {
+        setSearch(value);
+        setPage(1);
+      }, 400),
+    []
+  );
+
+  useEffect(() => {
+    debouncedSearch(searchInput);
+    return () => {
+      debouncedSearch.clear();
+    };
+  }, [debouncedSearch, searchInput]);
   const [weddingDataByLang, setWeddingDataByLang] = useState<
     Partial<Record<"id" | "en", WeddingData>>
   >({});
@@ -554,19 +572,17 @@ export default function GuestListPage() {
                   <input
                     className="w-48 bg-transparent text-sm text-foreground placeholder:text-muted-foreground focus:outline-none"
                     type="search"
-                    value={search}
+                    value={searchInput}
                     onChange={(e) => {
-                      setSearch(e.target.value);
-                      setPage(1);
+                      setSearchInput(e.target.value);
                     }}
                     placeholder="Search by guest name"
                   />
-                  {search && (
+                  {searchInput && (
                     <button
                       type="button"
                       onClick={() => {
-                        setSearch("");
-                        setPage(1);
+                        setSearchInput("");
                       }}
                       className="text-xs text-muted-foreground hover:text-foreground"
                       aria-label="Clear search"

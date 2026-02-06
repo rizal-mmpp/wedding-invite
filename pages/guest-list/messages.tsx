@@ -25,16 +25,22 @@ export default function GuestMessagesPage() {
     const loadMessages = async () => {
       try {
         setLoading(true);
-        const response = await fetch("/api/guest-list");
+        const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+        if (!supabaseUrl) {
+          setError("Missing NEXT_PUBLIC_SUPABASE_URL configuration");
+          return;
+        }
+        const response = await fetch(`${supabaseUrl}/functions/v1/guest-messages`);
+        if (!response.ok) {
+          setError("Failed to load messages");
+          return;
+        }
         const result = await response.json();
         if (!result.success) {
           setError(result.error || "Failed to load messages");
           return;
         }
-        const withMessages = (result.data || []).filter(
-          (guest: GuestMessageItem) => guest.rsvpMessage
-        );
-        setGuests(withMessages);
+        setGuests(result.data || []);
       } catch (err) {
         setError("Failed to load messages");
       } finally {

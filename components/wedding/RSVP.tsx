@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { Send, Check, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -25,6 +25,15 @@ interface GroupAttendee {
   phone: string;
 }
 
+interface GuestMessageItem {
+  id: string;
+  name: string;
+  title?: string;
+  slug: string;
+  rsvpStatus: "attending" | "not_attending" | "not_responded";
+  rsvpMessage?: string;
+}
+
 export function RSVP({
   data,
   lang,
@@ -34,6 +43,13 @@ export function RSVP({
   rsvpStatus = "not_responded",
 }: RSVPProps) {
   const isEn = lang === "en";
+  const getStatusLabel = (
+    status: "attending" | "not_attending" | "not_responded"
+  ) => {
+    if (status === "attending") return isEn ? "Attending" : "Hadir";
+    if (status === "not_attending") return isEn ? "Not Attending" : "Tidak Hadir";
+    return isEn ? "Not Responded" : "Belum Merespons";
+  };
   const defaultName = useMemo(() => guestName?.trim() || "", [guestName]);
   const isAlreadyResponded = !isGroup && rsvpStatus !== "not_responded";
   const [formData, setFormData] = useState({
@@ -44,9 +60,44 @@ export function RSVP({
   const [groupAttendees, setGroupAttendees] = useState<GroupAttendee[]>([
     { name: "", phone: "" },
   ]);
+  const [messages, setMessages] = useState<GuestMessageItem[]>([]);
+  const [messagesLoading, setMessagesLoading] = useState(true);
+  const [messagesError, setMessagesError] = useState("");
+  const [activeMessage, setActiveMessage] = useState<GuestMessageItem | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    const loadMessages = async () => {
+      try {
+        setMessagesLoading(true);
+        setMessagesError("");
+        const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+        if (!supabaseUrl) {
+          setMessagesError("Missing NEXT_PUBLIC_SUPABASE_URL configuration");
+          return;
+        }
+        const response = await fetch(`${supabaseUrl}/functions/v1/guest-messages`);
+        if (!response.ok) {
+          setMessagesError("Failed to load messages");
+          return;
+        }
+        const result = await response.json();
+        if (!result.success) {
+          setMessagesError(result.error || "Failed to load messages");
+          return;
+        }
+        setMessages(result.data || []);
+      } catch (err) {
+        setMessagesError("Failed to load messages");
+      } finally {
+        setMessagesLoading(false);
+      }
+    };
+
+    loadMessages();
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -441,8 +492,96 @@ export function RSVP({
               )}
             </CardContent>
           </Card>
+
+          <div className="mt-10 space-y-6">
+            <div className="text-center">
+              <h3 className="font-script text-3xl text-foreground">
+                {isEn ? "Guest Messages" : "Ucapan Tamu"}
+              </h3>
+              <Separator className="w-24 mx-auto bg-wedding-gold h-0.5 mt-3" />
+            </div>
+
+            {messagesLoading ? (
+              <p className="text-center text-muted-foreground">
+                {isEn ? "Loading..." : "Memuat..."}
+              </p>
+            ) : messagesError ? (
+              <p className="text-center text-red-500">{messagesError}</p>
+            ) : messages.length === 0 ? (
+              <p className="text-center text-muted-foreground">
+                {isEn ? "No messages yet." : "Belum ada ucapan."}
+              </p>
+            ) : (
+              <div className="relative">
+                <div className="flex gap-4 overflow-x-auto pb-2 pr-10 snap-x snap-mandatory">
+                  {messages.map((guestMessage) => (
+                    <Card
+                      key={guestMessage.id}
+                      className="border-wedding-gold/20 min-w-[260px] max-w-[320px] w-[280px] shrink-0 snap-start"
+                    >
+                      <CardHeader>
+                        <CardTitle className="flex items-center justify-between">
+                          <span>
+                            {guestMessage.title ? `${guestMessage.title} ` : ""}
+                            {guestMessage.name}
+                          </span>
+                          <span className="text-sm text-muted-foreground">
+                            {getStatusLabel(guestMessage.rsvpStatus)}
+                          </span>
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-3">
+                        <p className="whitespace-pre-line text-foreground line-clamp-5 max-h-[220px]">
+                          {guestMessage.rsvpMessage}
+                        </p>
+                        <div>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            className="px-0"
+                            onClick={() => setActiveMessage(guestMessage)}
+                          >
+                            {isEn ? "Show more" : "Lihat selengkapnya"}
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+                <div className="pointer-events-none absolute right-0 top-0 h-full w-12 bg-gradient-to-l from-background via-background/80 to-transparent" />
+              </div>
+            )}
+          </div>
         </motion.div>
       </div>
+      {activeMessage && (
+        <div
+          className="fixed inset-0 z-[300] flex items-center justify-center bg-black/60 px-4"
+          role="dialog"
+          aria-modal="true"
+        >
+          <div className="relative w-full max-w-lg rounded-2xl bg-background p-6 shadow-xl">
+            <button
+              type="button"
+              className="absolute right-4 top-4 text-sm text-muted-foreground"
+              onClick={() => setActiveMessage(null)}
+              aria-label={isEn ? "Close" : "Tutup"}
+            >
+              {isEn ? "Close" : "Tutup"}
+            </button>
+            <h4 className="text-lg font-semibold text-foreground">
+              {activeMessage.title ? `${activeMessage.title} ` : ""}
+              {activeMessage.name}
+            </h4>
+            <p className="text-sm text-muted-foreground mb-4">
+              {getStatusLabel(activeMessage.rsvpStatus)}
+            </p>
+            <p className="whitespace-pre-line text-foreground">
+              {activeMessage.rsvpMessage}
+            </p>
+          </div>
+        </div>
+      )}
     </section>
   );
 }

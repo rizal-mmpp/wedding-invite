@@ -19,6 +19,16 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Label } from "@/components/ui/label";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { copyToClipboard, formatDate, formatTime } from "@/lib/utils";
 import type { WeddingData } from "@/types/wedding";
 
@@ -150,6 +160,14 @@ export default function GuestListPage() {
   const [pageSize, setPageSize] = useState(20);
   const [total, setTotal] = useState(0);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [stats, setStats] = useState({
+    invited: 0,
+    messaged: 0,
+    attending: 0,
+    notResponded: 0,
+  });
+  const [sortBy, setSortBy] = useState<"created_at" | "name">("created_at");
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
 
   const debouncedSearch = useMemo(
     () =>
@@ -191,6 +209,8 @@ export default function GuestListPage() {
       if (search.trim()) query.set("search", search.trim());
       query.set("page", String(page));
       query.set("pageSize", String(pageSize));
+      query.set("sortBy", sortBy);
+      query.set("sortOrder", sortOrder);
 
       const response = await fetch(`/api/guest-list?${query.toString()}`);
       const result = await response.json();
@@ -201,6 +221,14 @@ export default function GuestListPage() {
           setTotal(payload.total || 0);
           setPage(payload.page || page);
           setPageSize(payload.pageSize || pageSize);
+          if (payload.stats) {
+            setStats({
+              invited: payload.stats.invited ?? 0,
+              messaged: payload.stats.messaged ?? 0,
+              attending: payload.stats.attending ?? 0,
+              notResponded: payload.stats.notResponded ?? 0,
+            });
+          }
         } else {
           setGuests(payload || []);
           setTotal(Array.isArray(payload) ? payload.length : 0);
@@ -225,6 +253,8 @@ export default function GuestListPage() {
     search,
     page,
     pageSize,
+    sortBy,
+    sortOrder,
   ]);
 
   useEffect(() => {
@@ -433,13 +463,7 @@ export default function GuestListPage() {
   };
 
 
-  const stats = useMemo(() => {
-    const invited = guests.filter((g) => g.invited).length;
-    const messaged = guests.filter((g) => g.messageSent).length;
-    const attending = guests.filter((g) => g.rsvpStatus === "attending").length;
-    const notResponded = guests.filter((g) => g.rsvpStatus === "not_responded").length;
-    return { invited, messaged, attending, notResponded };
-  }, [guests]);
+  const statsSnapshot = useMemo(() => stats, [stats]);
 
   const totalPages = Math.max(1, Math.ceil((total || 0) / pageSize));
   const allSelected = guests.length > 0 && selectedIds.length === guests.length;
@@ -506,7 +530,7 @@ export default function GuestListPage() {
               <CardContent className="p-4 text-center">
                 <Send className="w-8 h-8 mx-auto mb-2 text-green-600" />
                 <p className="text-2xl font-bold text-green-600">
-                  {stats.messaged}
+                  {statsSnapshot.messaged}
                 </p>
                 <p className="text-sm text-muted-foreground">Messaged</p>
               </CardContent>
@@ -515,7 +539,7 @@ export default function GuestListPage() {
               <CardContent className="p-4 text-center">
                 <MessageCircle className="w-8 h-8 mx-auto mb-2 text-blue-600" />
                 <p className="text-2xl font-bold text-blue-600">
-                  {stats.attending}
+                  {statsSnapshot.attending}
                 </p>
                 <p className="text-sm text-muted-foreground">Attending</p>
               </CardContent>
@@ -524,7 +548,7 @@ export default function GuestListPage() {
               <CardContent className="p-4 text-center">
                 <Users className="w-8 h-8 mx-auto mb-2 text-orange-600" />
                 <p className="text-2xl font-bold text-orange-600">
-                  {stats.notResponded}
+                  {statsSnapshot.notResponded}
                 </p>
                 <p className="text-sm text-muted-foreground">Not Responded</p>
               </CardContent>
@@ -622,20 +646,21 @@ export default function GuestListPage() {
                 </select>
               </div>
               <div>
-                <Label>Page Size</Label>
+                <Label>Sort By</Label>
                 <select
                   className="ml-2 border rounded px-2 py-1"
-                  value={pageSize}
+                  value={`${sortBy}:${sortOrder}`}
                   onChange={(e) => {
-                    setPageSize(Number(e.target.value));
+                    const [nextBy, nextOrder] = e.target.value.split(":");
+                    setSortBy(nextBy === "name" ? "name" : "created_at");
+                    setSortOrder(nextOrder === "asc" ? "asc" : "desc");
                     setPage(1);
                   }}
                 >
-                  {[20, 50, 100, 500, 1000].map((size) => (
-                    <option key={size} value={size}>
-                      {size}
-                    </option>
-                  ))}
+                  <option value="created_at:desc">Newest</option>
+                  <option value="created_at:asc">Oldest</option>
+                  <option value="name:asc">Name A-Z</option>
+                  <option value="name:desc">Name Z-A</option>
                 </select>
               </div>
               <Button variant="outline" onClick={fetchGuests}>
@@ -836,23 +861,86 @@ export default function GuestListPage() {
               <div className="text-sm text-muted-foreground">
                 Page {page} of {totalPages} ({total} total)
               </div>
-              <div className="flex gap-2">
-                <Button
+              <div className="flex items-center gap-2">
+                <ToggleGroup
+                  type="single"
+                  value={String(pageSize)}
+                  onValueChange={(value) => {
+                    if (!value) return;
+                    const nextSize = Number(value);
+                    if (!Number.isFinite(nextSize)) return;
+                    setPageSize(nextSize);
+                    setPage(1);
+                  }}
                   variant="outline"
                   size="sm"
-                  disabled={page <= 1}
-                  onClick={() => setPage((prev) => Math.max(1, prev - 1))}
+                  className="rounded-md border border-wedding-gold/20 bg-white p-1"
                 >
-                  Previous
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  disabled={page >= totalPages}
-                  onClick={() => setPage((prev) => Math.min(totalPages, prev + 1))}
-                >
-                  Next
-                </Button>
+                  {[20, 100, 500].map((size) => (
+                    <ToggleGroupItem key={size} value={String(size)} className="h-8 px-3">
+                      {size}
+                    </ToggleGroupItem>
+                  ))}
+                </ToggleGroup>
+                <Pagination>
+                  <PaginationContent>
+                    <PaginationItem>
+                      <PaginationPrevious
+                        href="#"
+                        onClick={(event) => {
+                          event.preventDefault();
+                          setPage((prev) => Math.max(1, prev - 1));
+                        }}
+                        className={page <= 1 ? "pointer-events-none opacity-50" : undefined}
+                      />
+                    </PaginationItem>
+                    {Array.from({ length: totalPages }, (_, index) => index + 1)
+                      .filter((pageNumber) => {
+                        if (totalPages <= 5) return true;
+                        if (pageNumber === 1 || pageNumber === totalPages) return true;
+                        return Math.abs(pageNumber - page) <= 1;
+                      })
+                      .reduce<number[]>((acc, pageNumber, index) => {
+                        if (index === 0) return [pageNumber];
+                        const previous = acc[acc.length - 1];
+                        if (pageNumber - previous > 1) {
+                          acc.push(-1);
+                        }
+                        acc.push(pageNumber);
+                        return acc;
+                      }, [])
+                      .map((pageNumber, index) =>
+                        pageNumber === -1 ? (
+                          <PaginationItem key={`ellipsis-${index}`}>
+                            <PaginationEllipsis />
+                          </PaginationItem>
+                        ) : (
+                          <PaginationItem key={pageNumber}>
+                            <PaginationLink
+                              href="#"
+                              isActive={pageNumber === page}
+                              onClick={(event) => {
+                                event.preventDefault();
+                                setPage(pageNumber);
+                              }}
+                            >
+                              {pageNumber}
+                            </PaginationLink>
+                          </PaginationItem>
+                        )
+                      )}
+                    <PaginationItem>
+                      <PaginationNext
+                        href="#"
+                        onClick={(event) => {
+                          event.preventDefault();
+                          setPage((prev) => Math.min(totalPages, prev + 1));
+                        }}
+                        className={page >= totalPages ? "pointer-events-none opacity-50" : undefined}
+                      />
+                    </PaginationItem>
+                  </PaginationContent>
+                </Pagination>
               </div>
             </div>
           )}

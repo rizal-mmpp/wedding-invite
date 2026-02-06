@@ -6,6 +6,7 @@ import {
   getAllGuests,
   getGuestBySlug,
   getGuestsPaged,
+  getGuestStats,
   updateGuest,
   updateGuestsMessageSent,
   GuestListRow,
@@ -35,6 +36,12 @@ interface GuestListResponse {
   page: number;
   pageSize: number;
   total: number;
+  stats?: {
+    invited: number;
+    messaged: number;
+    attending: number;
+    notResponded: number;
+  };
 }
 
 function formatGuest(row: GuestListRow): GuestResponse {
@@ -120,7 +127,16 @@ export default async function handler(
 ) {
   try {
     if (req.method === "GET") {
-      const { invited, messageSent, rsvpStatus, search, page, pageSize } = req.query;
+      const {
+        invited,
+        messageSent,
+        rsvpStatus,
+        search,
+        page,
+        pageSize,
+        sortBy,
+        sortOrder,
+      } = req.query;
       const resolvedPage = Array.isArray(page) ? page[0] : page;
       const resolvedPageSize = Array.isArray(pageSize) ? pageSize[0] : pageSize;
       const pageNumber = resolvedPage ? Number.parseInt(resolvedPage, 10) : 1;
@@ -130,8 +146,12 @@ export default async function handler(
       const allowedSizes = new Set([20, 50, 100, 500, 1000]);
       const finalPageSize = allowedSizes.has(safePageSize) ? safePageSize : 20;
       const searchValue = Array.isArray(search) ? search[0] : search;
+      const sortByValue = Array.isArray(sortBy) ? sortBy[0] : sortBy;
+      const sortOrderValue = Array.isArray(sortOrder) ? sortOrder[0] : sortOrder;
+      const resolvedSortBy = sortByValue === "name" ? "name" : "created_at";
+      const resolvedSortOrder = sortOrderValue === "asc" ? "asc" : "desc";
 
-      const { data, total } = await getGuestsPaged({
+      const filters = {
         invited: invited === undefined ? undefined : invited === "true",
         messageSent: messageSent === undefined ? undefined : messageSent === "true",
         rsvpStatus:
@@ -140,16 +160,26 @@ export default async function handler(
           rsvpStatus === "not_responded"
             ? rsvpStatus
             : undefined,
-        search: typeof searchValue === "string" && searchValue.trim() ? searchValue.trim() : undefined,
+        search:
+          typeof searchValue === "string" && searchValue.trim() ? searchValue.trim() : undefined,
         page: safePage,
         pageSize: finalPageSize,
-      });
+        sortBy: resolvedSortBy,
+        sortOrder: resolvedSortOrder,
+      } satisfies import("@/lib/supabase").GuestListFilters;
+
+      const [pagedResult, stats] = await Promise.all([
+        getGuestsPaged(filters),
+        getGuestStats(filters),
+      ]);
+      const { data, total } = pagedResult;
 
       const response: GuestListResponse = {
         items: data.map(formatGuest),
         page: safePage,
         pageSize: finalPageSize,
         total,
+        stats,
       };
 
       return res.status(200).json({

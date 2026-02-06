@@ -146,34 +146,55 @@ export async function getAllGuests(filters?: {
   return data ?? [];
 }
 
-export async function getGuestsPaged(filters?: {
+export type GuestListFilters = {
   invited?: boolean;
   messageSent?: boolean;
   rsvpStatus?: "attending" | "not_attending" | "not_responded";
   search?: string;
   page?: number;
   pageSize?: number;
-}): Promise<{ data: GuestListRow[]; total: number }> {
+  sortBy?: "created_at" | "name";
+  sortOrder?: "asc" | "desc";
+};
+
+type GuestQuery = ReturnType<
+  ReturnType<typeof getSupabaseClient>["from"]
+>["select"] extends (...args: any[]) => infer Result
+  ? Result
+  : never;
+
+function applyGuestFilters(query: GuestQuery, filters?: GuestListFilters): GuestQuery {
+  let nextQuery = query;
+  if (typeof filters?.invited === "boolean") {
+    nextQuery = nextQuery.eq("invited", filters.invited);
+  }
+  if (typeof filters?.messageSent === "boolean") {
+    nextQuery = nextQuery.eq("message_sent", filters.messageSent);
+  }
+  if (filters?.rsvpStatus) {
+    nextQuery = nextQuery.eq("rsvp_status", filters.rsvpStatus);
+  }
+  if (filters?.search) {
+    nextQuery = nextQuery.ilike("name", `%${filters.search}%`);
+  }
+  return nextQuery;
+}
+
+export async function getGuestsPaged(filters?: GuestListFilters): Promise<{
+  data: GuestListRow[];
+  total: number;
+}> {
   const supabase = getSupabaseClient();
+  const sortBy = filters?.sortBy ?? "created_at";
+  const sortOrder = filters?.sortOrder ?? "desc";
   let query = supabase
     .from("guest_list")
     .select("*", { count: "exact" })
-    .order("created_at", {
-      ascending: false,
+    .order(sortBy, {
+      ascending: sortOrder === "asc",
     });
 
-  if (typeof filters?.invited === "boolean") {
-    query = query.eq("invited", filters.invited);
-  }
-  if (typeof filters?.messageSent === "boolean") {
-    query = query.eq("message_sent", filters.messageSent);
-  }
-  if (filters?.rsvpStatus) {
-    query = query.eq("rsvp_status", filters.rsvpStatus);
-  }
-  if (filters?.search) {
-    query = query.ilike("name", `%${filters.search}%`);
-  }
+  query = applyGuestFilters(query, filters);
 
   const page = Math.max(1, filters?.page ?? 1);
   const pageSize = Math.max(1, filters?.pageSize ?? 20);
@@ -183,6 +204,39 @@ export async function getGuestsPaged(filters?: {
   const { data, error, count } = await query.range(from, to);
   if (error) throw error;
   return { data: data ?? [], total: count ?? 0 };
+}
+
+export async function getGuestStats(filters?: GuestListFilters): Promise<{
+  invited: number;
+  messaged: number;
+  attending: number;
+  notResponded: number;
+}> {
+  const supabase = getSupabaseClient();
+  const makeBaseQuery = () =>
+    applyGuestFilters(
+      supabase.from("guest_list").select("id", { count: "exact", head: true }),
+      filters
+    );
+
+  const [invitedRes, messagedRes, attendingRes, notRespondedRes] = await Promise.all([
+    makeBaseQuery().eq("invited", true),
+    makeBaseQuery().eq("message_sent", true),
+    makeBaseQuery().eq("rsvp_status", "attending"),
+    makeBaseQuery().eq("rsvp_status", "not_responded"),
+  ]);
+
+  if (invitedRes.error) throw invitedRes.error;
+  if (messagedRes.error) throw messagedRes.error;
+  if (attendingRes.error) throw attendingRes.error;
+  if (notRespondedRes.error) throw notRespondedRes.error;
+
+  return {
+    invited: invitedRes.count ?? 0,
+    messaged: messagedRes.count ?? 0,
+    attending: attendingRes.count ?? 0,
+    notResponded: notRespondedRes.count ?? 0,
+  };
 }
 
 export async function getGuestById(id: number): Promise<GuestListRow | undefined> {

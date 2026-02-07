@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
-import { motion } from "framer-motion";
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import { Send, Check, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -64,9 +64,15 @@ export function RSVP({
   const [messagesLoading, setMessagesLoading] = useState(true);
   const [messagesError, setMessagesError] = useState("");
   const [activeMessage, setActiveMessage] = useState<GuestMessageItem | null>(null);
+  const [isCommentModalOpen, setIsCommentModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [error, setError] = useState("");
+  const messagesContainerRef = useRef<HTMLDivElement | null>(null);
+  const filteredMessages = useMemo(
+    () => messages.filter((message) => message.rsvpMessage?.trim()),
+    [messages]
+  );
 
   useEffect(() => {
     const loadMessages = async () => {
@@ -98,6 +104,21 @@ export function RSVP({
 
     loadMessages();
   }, []);
+
+  useEffect(() => {
+    if (!messagesContainerRef.current || filteredMessages.length < 2) return;
+    const container = messagesContainerRef.current;
+    const intervalId = window.setInterval(() => {
+      const nextLeft = container.scrollLeft + container.clientWidth;
+      const maxLeft = container.scrollWidth - container.clientWidth;
+      container.scrollTo({
+        left: nextLeft >= maxLeft ? 0 : nextLeft,
+        behavior: "smooth",
+      });
+    }, 5000);
+
+    return () => window.clearInterval(intervalId);
+  }, [filteredMessages.length]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -507,14 +528,17 @@ export function RSVP({
               </p>
             ) : messagesError ? (
               <p className="text-center text-red-500">{messagesError}</p>
-            ) : messages.length === 0 ? (
+            ) : filteredMessages.length === 0 ? (
               <p className="text-center text-muted-foreground">
                 {isEn ? "No messages yet." : "Belum ada ucapan."}
               </p>
             ) : (
               <div className="relative">
-                <div className="flex gap-4 overflow-x-auto pb-2 pr-10 snap-x snap-mandatory">
-                  {messages.map((guestMessage) => (
+                <div
+                  ref={messagesContainerRef}
+                  className="flex gap-4 overflow-x-auto pb-2 pr-10 snap-x snap-mandatory"
+                >
+                  {filteredMessages.map((guestMessage) => (
                     <Card
                       key={guestMessage.id}
                       className="border-wedding-gold/20 min-w-[260px] max-w-[320px] w-[280px] shrink-0 snap-start"
@@ -551,6 +575,17 @@ export function RSVP({
                 <div className="pointer-events-none absolute right-0 top-0 h-full w-12 bg-gradient-to-l from-background via-background/80 to-transparent" />
               </div>
             )}
+            {filteredMessages.length > 0 && (
+              <div className="flex justify-center">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setIsCommentModalOpen(true)}
+                >
+                  {isEn ? "View all messages" : "Lihat semua ucapan"}
+                </Button>
+              </div>
+            )}
           </div>
         </motion.div>
       </div>
@@ -582,6 +617,62 @@ export function RSVP({
           </div>
         </div>
       )}
+      <AnimatePresence>
+        {isCommentModalOpen && (
+          <motion.div
+            className="fixed inset-0 z-[300] flex items-end justify-center bg-black/60"
+            role="dialog"
+            aria-modal="true"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <motion.div
+              className="relative w-full max-w-2xl rounded-t-3xl bg-background p-6 shadow-2xl"
+              initial={{ y: "100%" }}
+              animate={{ y: 0 }}
+              exit={{ y: "100%" }}
+              transition={{ type: "spring", stiffness: 260, damping: 30 }}
+            >
+              <div className="mb-4 flex items-center justify-between">
+                <div className="mx-auto h-1.5 w-14 rounded-full bg-muted" />
+                <button
+                  type="button"
+                  className="absolute right-4 top-4 text-sm text-muted-foreground"
+                  onClick={() => setIsCommentModalOpen(false)}
+                  aria-label={isEn ? "Close" : "Tutup"}
+                >
+                  {isEn ? "Close" : "Tutup"}
+                </button>
+              </div>
+              <h4 className="text-lg font-semibold text-foreground mb-4">
+                {isEn ? "Guest Messages" : "Ucapan Tamu"}
+              </h4>
+              <div className="max-h-[70vh] space-y-4 overflow-y-auto pr-2">
+                {filteredMessages.map((guestMessage) => (
+                  <div
+                    key={`modal-${guestMessage.id}`}
+                    className="rounded-xl border border-border p-4"
+                  >
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <p className="font-semibold text-foreground">
+                        {guestMessage.title ? `${guestMessage.title} ` : ""}
+                        {guestMessage.name}
+                      </p>
+                      <span className="text-sm text-muted-foreground">
+                        {getStatusLabel(guestMessage.rsvpStatus)}
+                      </span>
+                    </div>
+                    <p className="mt-2 whitespace-pre-line text-foreground">
+                      {guestMessage.rsvpMessage}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </section>
   );
 }

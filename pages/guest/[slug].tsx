@@ -284,7 +284,7 @@ export default function GuestInvitationPage({ weddingData, guest }: GuestPagePro
         />
       )}
 
-      <main>
+      <main className="[&>section]:!py-12">
         <Hero data={weddingData} lang={lang} />
         <Couple data={weddingData} lang={lang} />
         <Events data={weddingData} lang={lang} />

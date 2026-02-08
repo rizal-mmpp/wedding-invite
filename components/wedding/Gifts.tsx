@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { Gift, Copy, Check, CreditCard, Wallet, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -104,6 +104,7 @@ const GiftCard = ({ gift, lang }: { gift: GiftType; lang: "id" | "en" }) => {
 
 export function Gifts({ data, lang }: GiftsProps) {
   const isEn = lang === "en";
+  const [isGiftSheetOpen, setIsGiftSheetOpen] = useState(false);
   return (
     <section id="gifts" className="section-padding bg-wedding-cream">
       <div className="container mx-auto px-4">
@@ -113,7 +114,7 @@ export function Gifts({ data, lang }: GiftsProps) {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.8 }}
-          className="text-center mb-16"
+          className="text-center mb-4"
         >
           <p className="text-wedding-gold uppercase tracking-widest text-sm mb-4">
             {isEn ? "Wedding Gift" : "Hadiah Pernikahan"}
@@ -129,20 +130,23 @@ export function Gifts({ data, lang }: GiftsProps) {
           </p>
         </motion.div>
 
-        {/* Gift Cards */}
-        <div className="grid md:grid-cols-2 gap-6 max-w-3xl mx-auto">
-          {data.gifts.map((gift, index) => (
-            <motion.div
-              key={gift.id}
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: index * 0.1 }}
-            >
-              <GiftCard gift={gift} lang={lang} />
-            </motion.div>
-          ))}
-        </div>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6, delay: 0.2 }}
+          className="flex justify-center"
+        >
+          <Button
+            type="button"
+            variant="wedding"
+            size="xl"
+            onClick={() => setIsGiftSheetOpen(true)}
+          >
+            <Gift className="w-5 h-5 mr-2" />
+            {isEn ? "Send Gift" : "Kirim Hadiah"}
+          </Button>
+        </motion.div>
 
         {/* Thank you note */}
         <motion.div
@@ -161,6 +165,46 @@ export function Gifts({ data, lang }: GiftsProps) {
           </div>
         </motion.div>
       </div>
+      <AnimatePresence>
+        {isGiftSheetOpen && (
+          <motion.div
+            className="fixed inset-0 z-[300] flex items-end justify-center bg-black/60"
+            role="dialog"
+            aria-modal="true"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <motion.div
+              className="relative w-full max-w-3xl rounded-t-3xl bg-background p-6 shadow-2xl"
+              initial={{ y: "100%" }}
+              animate={{ y: 0 }}
+              exit={{ y: "100%" }}
+              transition={{ type: "spring", stiffness: 260, damping: 30 }}
+            >
+              <div className="mb-4 flex items-center justify-between">
+                <div className="mx-auto h-1.5 w-14 rounded-full bg-muted" />
+                <button
+                  type="button"
+                  className="absolute right-4 top-4 text-sm text-muted-foreground"
+                  onClick={() => setIsGiftSheetOpen(false)}
+                  aria-label={isEn ? "Close" : "Tutup"}
+                >
+                  {isEn ? "Close" : "Tutup"}
+                </button>
+              </div>
+              <h4 className="text-lg font-semibold text-foreground mb-4 text-center">
+                {isEn ? "Gift Details" : "Detail Hadiah"}
+              </h4>
+              <div className="grid gap-6 md:grid-cols-2 max-h-[70vh] overflow-y-auto pr-1">
+                {data.gifts.map((gift) => (
+                  <GiftCard key={`sheet-${gift.id}`} gift={gift} lang={lang} />
+                ))}
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </section>
   );
 }

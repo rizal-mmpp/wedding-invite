@@ -3,10 +3,10 @@
 import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import { motion } from "framer-motion";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, Video } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { getCountdown, formatDate } from "@/lib/utils";
-import type { WeddingData } from "@/types/wedding";
+import type { WeddingData, APIResponse, LiveStreamSettings } from "@/types/wedding";
 
 interface HeroProps {
   data: WeddingData;
@@ -22,6 +22,8 @@ export function Hero({ data, lang }: HeroProps) {
     minutes: 0,
     seconds: 0,
   });
+  const [liveStreamUrl, setLiveStreamUrl] = useState<string | null>(null);
+  const [isLoadingStream, setIsLoadingStream] = useState(true);
 
   useEffect(() => {
     const checkDesktop = () => setIsDesktop(window.innerWidth >= 768);
@@ -37,6 +39,24 @@ export function Hero({ data, lang }: HeroProps) {
 
     return () => clearInterval(timer);
   }, [data.weddingDate]);
+
+  useEffect(() => {
+    const loadLiveStream = async () => {
+      try {
+        const response = await fetch("/api/settings/live-stream");
+        const json = (await response.json()) as APIResponse<LiveStreamSettings>;
+        if (response.ok && json.success) {
+          setLiveStreamUrl(json.data?.url ?? null);
+        }
+      } catch (error) {
+        console.error("Failed to load live stream settings", error);
+      } finally {
+        setIsLoadingStream(false);
+      }
+    };
+
+    loadLiveStream();
+  }, []);
 
   const scrollToContent = () => {
     const element = document.getElementById("couple");
@@ -129,6 +149,27 @@ export function Hero({ data, lang }: HeroProps) {
               </div>
             ))}
           </motion.div>
+
+          {!isLoadingStream && liveStreamUrl && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.8 }}
+              className={isDesktop ? "flex justify-end" : "flex justify-center"}
+            >
+              <Button
+                asChild
+                variant="wedding"
+                size="lg"
+                className="gap-2"
+              >
+                <a href={liveStreamUrl} target="_blank" rel="noreferrer">
+                  <Video className="h-5 w-5" />
+                  {isEn ? "Watch Live Stream" : "Tonton Live Stream"}
+                </a>
+              </Button>
+            </motion.div>
+          )}
 
           {/* Scroll indicator */}
           {/* <motion.div

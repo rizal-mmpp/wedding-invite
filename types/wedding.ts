@@ -96,3 +96,7 @@ export interface APIResponse<T> {
   error?: string;
   message?: string;
 }
+
+export interface LiveStreamSettings {
+  url: string | null;
+}

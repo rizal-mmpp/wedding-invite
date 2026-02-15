@@ -48,6 +48,13 @@ export interface GuestListRow {
   updated_at: string;
 }
 
+export interface LiveStreamSettingsRow {
+  id: number;
+  url: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
 export async function getAllRSVPGuests(): Promise<RSVPGuestRow[]> {
   const supabase = getSupabaseClient();
   const { data, error } = await supabase
@@ -237,6 +244,31 @@ export async function getGuestStats(filters?: GuestListFilters): Promise<{
     attending: attendingRes.count ?? 0,
     notResponded: notRespondedRes.count ?? 0,
   };
+}
+
+export async function getLiveStreamSettings(): Promise<LiveStreamSettingsRow | undefined> {
+  const supabase = getSupabaseClient();
+  const { data, error } = await supabase
+    .from("live_stream_settings")
+    .select("*")
+    .eq("id", 1)
+    .single();
+  if (error) {
+    if (error.code === "PGRST116") return undefined;
+    throw error;
+  }
+  return data ?? undefined;
+}
+
+export async function upsertLiveStreamSettings(url: string | null): Promise<LiveStreamSettingsRow> {
+  const supabase = getSupabaseClient();
+  const { data, error } = await supabase
+    .from("live_stream_settings")
+    .upsert({ id: 1, url }, { onConflict: "id" })
+    .select("*")
+    .single();
+  if (error) throw error;
+  return data;
 }
 
 export async function getGuestById(id: number): Promise<GuestListRow | undefined> {

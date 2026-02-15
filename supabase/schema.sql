@@ -30,6 +30,13 @@ create table if not exists public.guest_list (
   updated_at timestamptz not null default now()
 );
 
+create table if not exists public.live_stream_settings (
+  id bigint primary key,
+  url text,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
 create index if not exists guest_list_slug_idx on public.guest_list (slug);
 
 create or replace function public.set_updated_at()
@@ -48,9 +55,16 @@ before update on public.guest_list
 for each row
 execute function public.set_updated_at();
 
+drop trigger if exists live_stream_settings_set_updated_at on public.live_stream_settings;
+create trigger live_stream_settings_set_updated_at
+before update on public.live_stream_settings
+for each row
+execute function public.set_updated_at();
+
 -- RLS policies for anon key access (adjust as needed)
 alter table public.guest_list enable row level security;
 alter table public.rsvp_guests enable row level security;
+alter table public.live_stream_settings enable row level security;
 
 drop policy if exists "guest_list_select" on public.guest_list;
 create policy "guest_list_select"
@@ -94,3 +108,22 @@ create policy "rsvp_delete"
 on public.rsvp_guests
 for delete
 using (true);
+
+drop policy if exists "live_stream_settings_select" on public.live_stream_settings;
+create policy "live_stream_settings_select"
+on public.live_stream_settings
+for select
+using (true);
+
+drop policy if exists "live_stream_settings_upsert" on public.live_stream_settings;
+create policy "live_stream_settings_upsert"
+on public.live_stream_settings
+for insert
+with check (true);
+
+drop policy if exists "live_stream_settings_update" on public.live_stream_settings;
+create policy "live_stream_settings_update"
+on public.live_stream_settings
+for update
+using (true)
+with check (true);

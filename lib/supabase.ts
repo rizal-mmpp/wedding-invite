@@ -55,6 +55,13 @@ export interface LiveStreamSettingsRow {
   updated_at: string;
 }
 
+export interface WeddingDateSettingsRow {
+  id: number;
+  wedding_date: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
 export async function getAllRSVPGuests(): Promise<RSVPGuestRow[]> {
   const supabase = getSupabaseClient();
   const { data, error } = await supabase
@@ -265,6 +272,33 @@ export async function upsertLiveStreamSettings(url: string | null): Promise<Live
   const { data, error } = await supabase
     .from("live_stream_settings")
     .upsert({ id: 1, url }, { onConflict: "id" })
+    .select("*")
+    .single();
+  if (error) throw error;
+  return data;
+}
+
+export async function getWeddingDateSettings(): Promise<WeddingDateSettingsRow | undefined> {
+  const supabase = getSupabaseClient();
+  const { data, error } = await supabase
+    .from("wedding_date_settings")
+    .select("*")
+    .eq("id", 1)
+    .single();
+  if (error) {
+    if (error.code === "PGRST116") return undefined;
+    throw error;
+  }
+  return data ?? undefined;
+}
+
+export async function upsertWeddingDateSettings(
+  weddingDate: string | null
+): Promise<WeddingDateSettingsRow> {
+  const supabase = getSupabaseClient();
+  const { data, error } = await supabase
+    .from("wedding_date_settings")
+    .upsert({ id: 1, wedding_date: weddingDate }, { onConflict: "id" })
     .select("*")
     .single();
   if (error) throw error;

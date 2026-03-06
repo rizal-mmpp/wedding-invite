@@ -100,3 +100,7 @@ export interface APIResponse<T> {
 export interface LiveStreamSettings {
   url: string | null;
 }
+
+export interface WeddingDateSettings {
+  weddingDate: string | null;
+}

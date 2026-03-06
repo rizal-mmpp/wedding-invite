@@ -4,10 +4,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import type { LiveStreamSettings, APIResponse } from "@/types/wedding";
+import type { LiveStreamSettings, APIResponse, WeddingDateSettings } from "@/types/wedding";
 
 export default function SettingsPage() {
   const [liveStreamUrl, setLiveStreamUrl] = useState("");
+  const [weddingDate, setWeddingDate] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
@@ -16,12 +17,24 @@ export default function SettingsPage() {
   useEffect(() => {
     const loadSettings = async () => {
       try {
-        const response = await fetch("/api/settings/live-stream");
-        const json = (await response.json()) as APIResponse<LiveStreamSettings>;
-        if (!response.ok || !json.success) {
-          throw new Error(json.error || "Failed to load live stream settings");
+        const [liveStreamResponse, weddingDateResponse] = await Promise.all([
+          fetch("/api/settings/live-stream"),
+          fetch("/api/settings/wedding-date"),
+        ]);
+
+        const liveStreamJson =
+          (await liveStreamResponse.json()) as APIResponse<LiveStreamSettings>;
+        const weddingDateJson =
+          (await weddingDateResponse.json()) as APIResponse<WeddingDateSettings>;
+
+        if (!liveStreamResponse.ok || !liveStreamJson.success) {
+          throw new Error(liveStreamJson.error || "Failed to load live stream settings");
         }
-        setLiveStreamUrl(json.data?.url ?? "");
+        if (!weddingDateResponse.ok || !weddingDateJson.success) {
+          throw new Error(weddingDateJson.error || "Failed to load wedding date settings");
+        }
+        setLiveStreamUrl(liveStreamJson.data?.url ?? "");
+        setWeddingDate(weddingDateJson.data?.weddingDate ?? "");
       } catch (err) {
         setError(err instanceof Error ? err.message : "Failed to load settings");
       } finally {
@@ -39,17 +52,34 @@ export default function SettingsPage() {
     setError(null);
 
     try {
-      const response = await fetch("/api/settings/live-stream", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url: liveStreamUrl || null }),
-      });
-      const json = (await response.json()) as APIResponse<LiveStreamSettings>;
-      if (!response.ok || !json.success) {
-        throw new Error(json.error || "Failed to save live stream settings");
+      const [liveStreamResponse, weddingDateResponse] = await Promise.all([
+        fetch("/api/settings/live-stream", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ url: liveStreamUrl || null }),
+        }),
+        fetch("/api/settings/wedding-date", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ weddingDate: weddingDate || null }),
+        }),
+      ]);
+
+      const liveStreamJson =
+        (await liveStreamResponse.json()) as APIResponse<LiveStreamSettings>;
+      const weddingDateJson =
+        (await weddingDateResponse.json()) as APIResponse<WeddingDateSettings>;
+
+      if (!liveStreamResponse.ok || !liveStreamJson.success) {
+        throw new Error(liveStreamJson.error || "Failed to save live stream settings");
       }
-      setLiveStreamUrl(json.data?.url ?? "");
-      setMessage("Live stream link saved.");
+      if (!weddingDateResponse.ok || !weddingDateJson.success) {
+        throw new Error(weddingDateJson.error || "Failed to save wedding date settings");
+      }
+
+      setLiveStreamUrl(liveStreamJson.data?.url ?? "");
+      setWeddingDate(weddingDateJson.data?.weddingDate ?? "");
+      setMessage("Settings saved.");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to save settings");
     } finally {
@@ -74,11 +104,25 @@ export default function SettingsPage() {
               </h1>
               <Separator className="w-24 mx-auto bg-wedding-gold h-0.5" />
               <p className="text-muted-foreground mt-4">
-                Update the live stream link that appears on the invitation hero section.
+                Update the live stream link and wedding date/time used on the invitation.
               </p>
             </div>
 
             <form onSubmit={handleSave} className="mt-8 space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="weddingDate">Wedding date &amp; time</Label>
+                <Input
+                  id="weddingDate"
+                  name="weddingDate"
+                  type="datetime-local"
+                  value={weddingDate}
+                  onChange={(event) => setWeddingDate(event.target.value)}
+                  disabled={isLoading || isSaving}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Use your local time. Leave empty to keep the default date.
+                </p>
+              </div>
               <div className="space-y-2">
                 <Label htmlFor="liveStreamUrl">Live stream link</Label>
                 <Input

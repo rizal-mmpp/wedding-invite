@@ -6,7 +6,12 @@ import { motion } from "framer-motion";
 import { ChevronDown, Video } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { getCountdown, formatDate } from "@/lib/utils";
-import type { WeddingData, APIResponse, LiveStreamSettings } from "@/types/wedding";
+import type {
+  WeddingData,
+  APIResponse,
+  LiveStreamSettings,
+  WeddingDateSettings,
+} from "@/types/wedding";
 
 interface HeroProps {
   data: WeddingData;
@@ -24,6 +29,7 @@ export function Hero({ data, lang }: HeroProps) {
   });
   const [liveStreamUrl, setLiveStreamUrl] = useState<string | null>(null);
   const [isLoadingStream, setIsLoadingStream] = useState(true);
+  const [weddingDateOverride, setWeddingDateOverride] = useState<string | null>(null);
 
   useEffect(() => {
     const checkDesktop = () => setIsDesktop(window.innerWidth >= 768);
@@ -32,30 +38,41 @@ export function Hero({ data, lang }: HeroProps) {
     return () => window.removeEventListener('resize', checkDesktop);
   }, []);
 
+  const weddingDate = weddingDateOverride ?? data.weddingDate;
+
   useEffect(() => {
     const timer = setInterval(() => {
-      setCountdown(getCountdown(data.weddingDate));
+      setCountdown(getCountdown(weddingDate));
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [data.weddingDate]);
+  }, [weddingDate]);
 
   useEffect(() => {
-    const loadLiveStream = async () => {
+    const loadSettings = async () => {
       try {
-        const response = await fetch("/api/settings/live-stream");
-        const json = (await response.json()) as APIResponse<LiveStreamSettings>;
-        if (response.ok && json.success) {
-          setLiveStreamUrl(json.data?.url ?? null);
+        const [liveStreamResponse, weddingDateResponse] = await Promise.all([
+          fetch("/api/settings/live-stream"),
+          fetch("/api/settings/wedding-date"),
+        ]);
+        const liveStreamJson =
+          (await liveStreamResponse.json()) as APIResponse<LiveStreamSettings>;
+        const weddingDateJson =
+          (await weddingDateResponse.json()) as APIResponse<WeddingDateSettings>;
+        if (liveStreamResponse.ok && liveStreamJson.success) {
+          setLiveStreamUrl(liveStreamJson.data?.url ?? null);
+        }
+        if (weddingDateResponse.ok && weddingDateJson.success) {
+          setWeddingDateOverride(weddingDateJson.data?.weddingDate ?? null);
         }
       } catch (error) {
-        console.error("Failed to load live stream settings", error);
+        console.error("Failed to load hero settings", error);
       } finally {
         setIsLoadingStream(false);
       }
     };
 
-    loadLiveStream();
+    loadSettings();
   }, []);
 
   const scrollToContent = () => {
@@ -114,7 +131,7 @@ export function Hero({ data, lang }: HeroProps) {
             className="mb-8"
           >
             <p className="text-xl md:text-2xl font-light">
-              {formatDate(data.weddingDate, isEn ? "en-US" : "id-ID")}
+              {formatDate(weddingDate, isEn ? "en-US" : "id-ID")}
             </p>
           </motion.div>
 

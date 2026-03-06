@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { getGuestBySlug } from "@/lib/supabase";
+import { getGuestBySlug, getWeddingDateSettings } from "@/lib/supabase";
 import type { WeddingData, APIResponse } from "@/types/wedding";
 
 export const dummyWeddingDataId: WeddingData = {
@@ -239,7 +239,12 @@ export default async function handler(
       ? req.query.lang[0]
       : req.query.lang;
     const lang = (langFromGuest ?? langParam ?? "id").toLowerCase();
-    const data = lang === "en" ? dummyWeddingDataEn : dummyWeddingDataId;
+    const baseData = lang === "en" ? dummyWeddingDataEn : dummyWeddingDataId;
+    const weddingDateSettings = await getWeddingDateSettings();
+    const data = {
+      ...baseData,
+      weddingDate: weddingDateSettings?.wedding_date ?? baseData.weddingDate,
+    };
     res.status(200).json({
       success: true,
       data,
